@@ -324,18 +324,33 @@
   </style>
 </head>
 <body>
-  <select id="langSelect">
-    <option value="de">Deutsch</option>
-    <option value="en">English</option>
-    <option value="es">Español</option>
-    <option value="fr">Français</option>
-    <option value="it">Italiano</option>
-    <option value="pt">Português</option>
-    <option value="nl">Nederlands</option>
-    <option value="pl">Polski</option>
-    <option value="ru">Русский</option>
-    <option value="ja">日本語</option>
-  </select>
+  <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:10px;">
+    <select id="langSelect">
+      <option value="de">Deutsch</option>
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="pt">Português</option>
+      <option value="nl">Nederlands</option>
+      <option value="pl">Polski</option>
+      <option value="ru">Русский</option>
+      <option value="ja">日本語</option>
+    </select>
+
+    <select id="difficultySelect">
+      <option value="easy">Leicht / Easy</option>
+      <option value="medium" selected>Mittel / Medium</option>
+      <option value="hard">Schwer / Hard</option>
+    </select>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:15px;">
+    <button id="saveBtn" style="background:#28a745;">💾 Speichern</button>
+    <button id="loadBtn" style="background:#17a2b8;">📂 Laden</button>
+    <button id="exportBtn" style="background:#ffc107; color:#000;">📋 Code Exportieren</button>
+    <button id="importBtn" style="background:#fd7e14;">📥 Code Importieren</button>
+  </div>
 
   <h1 id="title">Bildungs-Clicker</h1>
   <p id="flavour">Spielerisches Lernen und Lehren</p>
@@ -472,6 +487,10 @@
     let prestigePoints = 0;
     let totalResets = 0;
 
+    // Difficulty system
+    let difficulty = 'medium';
+    let difficultyMultiplier = 1;
+
     // Prestige multipliers
     let clickMultiplier = 1;
     let autoMultiplier = 1;
@@ -490,6 +509,18 @@
     const resetBtn = document.getElementById('resetBtn');
     const achievementEl = document.getElementById('achievement');
     let lang = 'de';
+
+    // Difficulty multipliers
+    function updateDifficultyMultiplier() {
+      if (difficulty === 'easy') {
+        difficultyMultiplier = 1 / 3; // Costs 3x cheaper
+      } else if (difficulty === 'medium') {
+        difficultyMultiplier = 1;
+      } else if (difficulty === 'hard') {
+        difficultyMultiplier = 3; // Costs 3x more expensive
+      }
+    }
+    updateDifficultyMultiplier();
 
     const translations = {
       de: {
@@ -1902,6 +1933,312 @@
       document.getElementById('pStartBtn').disabled = prestigePoints < pStartCost;
       document.getElementById('pDiscountBtn').disabled = prestigePoints < pDiscountCost;
     }, 100);
+
+    // Difficulty selection
+    document.getElementById('difficultySelect').onchange = (e) => {
+      const newDifficulty = e.target.value;
+      if (confirm('Schwierigkeit ändern? Dies wird alle Kosten anpassen!\nChange difficulty? This will adjust all costs!')) {
+        difficulty = newDifficulty;
+        updateDifficultyMultiplier();
+
+        // Reset all upgrade costs with new difficulty
+        basicUpgrades.forEach(u => {
+          u.cost = Math.floor(u.baseCost * difficultyMultiplier);
+          document.getElementById(u.costEl).textContent = formatNumber(u.cost);
+        });
+        materialUpgrades.forEach(u => {
+          u.cost = Math.floor(u.baseCost * difficultyMultiplier);
+          document.getElementById(u.costEl).textContent = formatNumber(u.cost);
+        });
+        examUpgrades.forEach(u => {
+          u.cost = Math.floor(u.baseCost * difficultyMultiplier);
+          document.getElementById(u.costEl).textContent = formatNumber(u.cost);
+        });
+        projectUpgrades.forEach(u => {
+          u.cost = Math.floor(u.baseCost * difficultyMultiplier);
+          document.getElementById(u.costEl).textContent = formatNumber(u.cost);
+        });
+        digitalUpgrades.forEach(u => {
+          u.cost = Math.floor(u.baseCost * difficultyMultiplier);
+          document.getElementById(u.costEl).textContent = formatNumber(u.cost);
+        });
+
+        update();
+      } else {
+        e.target.value = difficulty;
+      }
+    };
+
+    // Save/Load System
+    function saveGame() {
+      const gameState = {
+        count, perClick, autoClicks, teacher, student, role, hasExams,
+        playerName, achievementsShown, prestigePoints, totalResets,
+        difficulty, difficultyMultiplier,
+        clickMultiplier, autoMultiplier, startBonus, discountLevel,
+        pClickCost, pAutoCost, pStartCost, pDiscountCost,
+        lang, owned,
+        basicUpgrades: basicUpgrades.map(u => ({cost: u.cost})),
+        materialUpgrades: materialUpgrades.map(u => ({cost: u.cost})),
+        examUpgrades: examUpgrades.map(u => ({cost: u.cost})),
+        projectUpgrades: projectUpgrades.map(u => ({cost: u.cost})),
+        digitalUpgrades: digitalUpgrades.map(u => ({cost: u.cost}))
+      };
+      localStorage.setItem('schulClickerSave', JSON.stringify(gameState));
+      alert('Spiel gespeichert! / Game saved!');
+    }
+
+    function loadGame() {
+      const saved = localStorage.getItem('schulClickerSave');
+      if (!saved) {
+        alert('Kein Spielstand gefunden! / No save found!');
+        return;
+      }
+
+      if (confirm('Gespeicherten Stand laden? / Load saved game?')) {
+        try {
+          const gameState = JSON.parse(saved);
+
+          count = gameState.count || 0;
+          perClick = gameState.perClick || 1;
+          autoClicks = gameState.autoClicks || 0;
+          teacher = gameState.teacher || 0;
+          student = gameState.student || 0;
+          role = gameState.role || null;
+          hasExams = gameState.hasExams || false;
+          playerName = gameState.playerName || '';
+          achievementsShown = gameState.achievementsShown || [];
+          prestigePoints = gameState.prestigePoints || 0;
+          totalResets = gameState.totalResets || 0;
+          difficulty = gameState.difficulty || 'medium';
+          difficultyMultiplier = gameState.difficultyMultiplier || 1;
+          clickMultiplier = gameState.clickMultiplier || 1;
+          autoMultiplier = gameState.autoMultiplier || 1;
+          startBonus = gameState.startBonus || 0;
+          discountLevel = gameState.discountLevel || 0;
+          pClickCost = gameState.pClickCost || 1;
+          pAutoCost = gameState.pAutoCost || 1;
+          pStartCost = gameState.pStartCost || 2;
+          pDiscountCost = gameState.pDiscountCost || 3;
+          lang = gameState.lang || 'de';
+
+          if (gameState.owned) {
+            for (let key in gameState.owned) {
+              owned[key] = gameState.owned[key];
+            }
+          }
+
+          // Restore upgrade costs
+          if (gameState.basicUpgrades) {
+            gameState.basicUpgrades.forEach((saved, i) => {
+              if (basicUpgrades[i]) {
+                basicUpgrades[i].cost = saved.cost;
+              }
+            });
+          }
+          if (gameState.materialUpgrades) {
+            gameState.materialUpgrades.forEach((saved, i) => {
+              if (materialUpgrades[i]) {
+                materialUpgrades[i].cost = saved.cost;
+              }
+            });
+          }
+          if (gameState.examUpgrades) {
+            gameState.examUpgrades.forEach((saved, i) => {
+              if (examUpgrades[i]) {
+                examUpgrades[i].cost = saved.cost;
+              }
+            });
+          }
+          if (gameState.projectUpgrades) {
+            gameState.projectUpgrades.forEach((saved, i) => {
+              if (projectUpgrades[i]) {
+                projectUpgrades[i].cost = saved.cost;
+              }
+            });
+          }
+          if (gameState.digitalUpgrades) {
+            gameState.digitalUpgrades.forEach((saved, i) => {
+              if (digitalUpgrades[i]) {
+                digitalUpgrades[i].cost = saved.cost;
+              }
+            });
+          }
+
+          // Update UI
+          document.getElementById('nameInput').value = playerName;
+          document.getElementById('langSelect').value = lang;
+          document.getElementById('difficultySelect').value = difficulty;
+
+          // Update level displays
+          for (let key in owned) {
+            const levelEl = document.getElementById(key + 'Level');
+            if (levelEl) {
+              levelEl.textContent = `[${owned[key]}]`;
+            }
+          }
+
+          // Show prestige shop if needed
+          if (totalResets >= 1) {
+            document.getElementById('prestigeShop').classList.remove('hidden');
+          }
+
+          updateLanguage();
+          update();
+          updateRank();
+          alert('Spielstand geladen! / Game loaded!');
+        } catch (e) {
+          alert('Fehler beim Laden! / Loading error: ' + e.message);
+        }
+      }
+    }
+
+    // Export/Import System
+    function exportGame() {
+      const gameState = {
+        count, perClick, autoClicks, teacher, student, role, hasExams,
+        playerName, achievementsShown, prestigePoints, totalResets,
+        difficulty, difficultyMultiplier,
+        clickMultiplier, autoMultiplier, startBonus, discountLevel,
+        pClickCost, pAutoCost, pStartCost, pDiscountCost,
+        lang, owned,
+        basicUpgrades: basicUpgrades.map(u => ({cost: u.cost})),
+        materialUpgrades: materialUpgrades.map(u => ({cost: u.cost})),
+        examUpgrades: examUpgrades.map(u => ({cost: u.cost})),
+        projectUpgrades: projectUpgrades.map(u => ({cost: u.cost})),
+        digitalUpgrades: digitalUpgrades.map(u => ({cost: u.cost}))
+      };
+
+      const code = btoa(JSON.stringify(gameState));
+
+      const textarea = document.createElement('textarea');
+      textarea.value = code;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      alert('Code kopiert! In Zwischenablage.\nCode copied to clipboard:\n\n' + code.substring(0, 50) + '...');
+    }
+
+    function importGame() {
+      const code = prompt('Code einfügen / Paste code:');
+      if (!code) return;
+
+      try {
+        const gameState = JSON.parse(atob(code));
+
+        count = gameState.count || 0;
+        perClick = gameState.perClick || 1;
+        autoClicks = gameState.autoClicks || 0;
+        teacher = gameState.teacher || 0;
+        student = gameState.student || 0;
+        role = gameState.role || null;
+        hasExams = gameState.hasExams || false;
+        playerName = gameState.playerName || '';
+        achievementsShown = gameState.achievementsShown || [];
+        prestigePoints = gameState.prestigePoints || 0;
+        totalResets = gameState.totalResets || 0;
+        difficulty = gameState.difficulty || 'medium';
+        difficultyMultiplier = gameState.difficultyMultiplier || 1;
+        clickMultiplier = gameState.clickMultiplier || 1;
+        autoMultiplier = gameState.autoMultiplier || 1;
+        startBonus = gameState.startBonus || 0;
+        discountLevel = gameState.discountLevel || 0;
+        pClickCost = gameState.pClickCost || 1;
+        pAutoCost = gameState.pAutoCost || 1;
+        pStartCost = gameState.pStartCost || 2;
+        pDiscountCost = gameState.pDiscountCost || 3;
+        lang = gameState.lang || 'de';
+
+        if (gameState.owned) {
+          for (let key in gameState.owned) {
+            owned[key] = gameState.owned[key];
+          }
+        }
+
+        // Restore upgrade costs
+        if (gameState.basicUpgrades) {
+          gameState.basicUpgrades.forEach((saved, i) => {
+            if (basicUpgrades[i]) {
+              basicUpgrades[i].cost = saved.cost;
+            }
+          });
+        }
+        if (gameState.materialUpgrades) {
+          gameState.materialUpgrades.forEach((saved, i) => {
+            if (materialUpgrades[i]) {
+              materialUpgrades[i].cost = saved.cost;
+            }
+          });
+        }
+        if (gameState.examUpgrades) {
+          gameState.examUpgrades.forEach((saved, i) => {
+            if (examUpgrades[i]) {
+              examUpgrades[i].cost = saved.cost;
+            }
+          });
+        }
+        if (gameState.projectUpgrades) {
+          gameState.projectUpgrades.forEach((saved, i) => {
+            if (projectUpgrades[i]) {
+              projectUpgrades[i].cost = saved.cost;
+            }
+          });
+        }
+        if (gameState.digitalUpgrades) {
+          gameState.digitalUpgrades.forEach((saved, i) => {
+            if (digitalUpgrades[i]) {
+              digitalUpgrades[i].cost = saved.cost;
+            }
+          });
+        }
+
+        // Update UI
+        document.getElementById('nameInput').value = playerName;
+        document.getElementById('langSelect').value = lang;
+        document.getElementById('difficultySelect').value = difficulty;
+
+        // Update level displays
+        for (let key in owned) {
+          const levelEl = document.getElementById(key + 'Level');
+          if (levelEl) {
+            levelEl.textContent = `[${owned[key]}]`;
+          }
+        }
+
+        // Show prestige shop if needed
+        if (totalResets >= 1) {
+          document.getElementById('prestigeShop').classList.remove('hidden');
+        }
+
+        updateLanguage();
+        update();
+        updateRank();
+        alert('Code importiert! / Code imported!');
+      } catch (e) {
+        alert('Ungültiger Code! / Invalid code: ' + e.message);
+      }
+    }
+
+    // Button handlers
+    document.getElementById('saveBtn').onclick = saveGame;
+    document.getElementById('loadBtn').onclick = loadGame;
+    document.getElementById('exportBtn').onclick = exportGame;
+    document.getElementById('importBtn').onclick = importGame;
+
+    // Auto-save every 30 seconds
+    setInterval(saveGame, 30000);
+
+    // Try to load save on startup
+    window.addEventListener('load', () => {
+      const saved = localStorage.getItem('schulClickerSave');
+      if (saved) {
+        if (confirm('Gespeicherten Spielstand laden? / Load saved game?')) {
+          loadGame();
+        }
+      }
+    });
 
     updateLanguage();
     update();
