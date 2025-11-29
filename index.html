@@ -326,6 +326,15 @@
 <body>
   <select id="langSelect">
     <option value="de">Deutsch</option>
+    <option value="en">English</option>
+    <option value="es">Español</option>
+    <option value="fr">Français</option>
+    <option value="it">Italiano</option>
+    <option value="pt">Português</option>
+    <option value="nl">Nederlands</option>
+    <option value="pl">Polski</option>
+    <option value="ru">Русский</option>
+    <option value="ja">日本語</option>
   </select>
 
   <h1 id="title">Bildungs-Clicker</h1>
@@ -482,6 +491,319 @@
     const achievementEl = document.getElementById('achievement');
     let lang = 'de';
 
+    const translations = {
+      de: {
+        title: 'Bildungs-Clicker',
+        flavour: 'Spielerisches Lernen und Lehren',
+        namePlaceholder: 'Dein Name...',
+        clickBtn: 'Lerne!',
+        clickBtnTeacher: 'Unterrichte!',
+        clickBtnStudent: 'Lerne fleißig!',
+        resetBtn: 'Reset',
+        prestigePoints: 'Prestige-Punkte',
+        prestigeShopTitle: 'Prestige-Shop',
+        pClickMulti: 'Klick-Multiplikator x2',
+        pAutoMulti: 'Auto-Multiplikator x2',
+        pStartBonus: 'Startwert +1000',
+        pDiscount: 'Kosten-Reduktion',
+        cost: 'Kosten',
+        buy: 'Kaufen',
+        roleTitle: 'Rolle wählen',
+        chooseTeacher: 'Ich bin Lehrer/in',
+        chooseStudent: 'Ich bin Schüler/in',
+        roleText: 'Keine Rolle gewählt.',
+        roleTextTeacher: 'Lehrer/in – Wissen weitergeben',
+        roleTextStudent: 'Schüler/in – Wissenserwerb',
+        teacherLabel: 'Kompetenz',
+        studentLabel: 'Wissen',
+        rank: 'Rang',
+        basicsTitle: 'Grundwissen',
+        materialsTitle: 'Lehrmittel',
+        examsTitle: 'Prüfungen',
+        projectsTitle: 'Projekte',
+        digitalTitle: 'Digitale Tools'
+      },
+      en: {
+        title: 'Education Clicker',
+        flavour: 'Playful Learning and Teaching',
+        namePlaceholder: 'Your name...',
+        clickBtn: 'Learn!',
+        clickBtnTeacher: 'Teach!',
+        clickBtnStudent: 'Study hard!',
+        resetBtn: 'Reset',
+        prestigePoints: 'Prestige Points',
+        prestigeShopTitle: 'Prestige Shop',
+        pClickMulti: 'Click Multiplier x2',
+        pAutoMulti: 'Auto Multiplier x2',
+        pStartBonus: 'Start Value +1000',
+        pDiscount: 'Cost Reduction',
+        cost: 'Cost',
+        buy: 'Buy',
+        roleTitle: 'Choose Role',
+        chooseTeacher: 'I am a Teacher',
+        chooseStudent: 'I am a Student',
+        roleText: 'No role selected.',
+        roleTextTeacher: 'Teacher – Share knowledge',
+        roleTextStudent: 'Student – Acquire knowledge',
+        teacherLabel: 'Competence',
+        studentLabel: 'Knowledge',
+        rank: 'Rank',
+        basicsTitle: 'Basic Knowledge',
+        materialsTitle: 'Learning Materials',
+        examsTitle: 'Exams',
+        projectsTitle: 'Projects',
+        digitalTitle: 'Digital Tools'
+      },
+      es: {
+        title: 'Clicker Educativo',
+        flavour: 'Aprendizaje y Enseñanza Lúdica',
+        namePlaceholder: 'Tu nombre...',
+        clickBtn: '¡Aprende!',
+        clickBtnTeacher: '¡Enseña!',
+        clickBtnStudent: '¡Estudia mucho!',
+        resetBtn: 'Reiniciar',
+        prestigePoints: 'Puntos de Prestigio',
+        prestigeShopTitle: 'Tienda de Prestigio',
+        pClickMulti: 'Multiplicador de Clic x2',
+        pAutoMulti: 'Multiplicador Auto x2',
+        pStartBonus: 'Valor Inicial +1000',
+        pDiscount: 'Reducción de Costos',
+        cost: 'Costo',
+        buy: 'Comprar',
+        roleTitle: 'Elegir Rol',
+        chooseTeacher: 'Soy Profesor/a',
+        chooseStudent: 'Soy Estudiante',
+        roleText: 'Ningún rol seleccionado.',
+        roleTextTeacher: 'Profesor/a – Compartir conocimiento',
+        roleTextStudent: 'Estudiante – Adquirir conocimiento',
+        teacherLabel: 'Competencia',
+        studentLabel: 'Conocimiento',
+        rank: 'Rango',
+        basicsTitle: 'Conocimiento Básico',
+        materialsTitle: 'Material Didáctico',
+        examsTitle: 'Exámenes',
+        projectsTitle: 'Proyectos',
+        digitalTitle: 'Herramientas Digitales'
+      },
+      fr: {
+        title: 'Clicker Éducatif',
+        flavour: 'Apprentissage et Enseignement Ludique',
+        namePlaceholder: 'Votre nom...',
+        clickBtn: 'Apprends!',
+        clickBtnTeacher: 'Enseigne!',
+        clickBtnStudent: 'Étudie avec ardeur!',
+        resetBtn: 'Réinitialiser',
+        prestigePoints: 'Points de Prestige',
+        prestigeShopTitle: 'Boutique de Prestige',
+        pClickMulti: 'Multiplicateur de Clic x2',
+        pAutoMulti: 'Multiplicateur Auto x2',
+        pStartBonus: 'Valeur de Départ +1000',
+        pDiscount: 'Réduction des Coûts',
+        cost: 'Coût',
+        buy: 'Acheter',
+        roleTitle: 'Choisir un Rôle',
+        chooseTeacher: 'Je suis Enseignant(e)',
+        chooseStudent: 'Je suis Élève',
+        roleText: 'Aucun rôle sélectionné.',
+        roleTextTeacher: 'Enseignant(e) – Partager les connaissances',
+        roleTextStudent: 'Élève – Acquérir des connaissances',
+        teacherLabel: 'Compétence',
+        studentLabel: 'Savoir',
+        rank: 'Rang',
+        basicsTitle: 'Connaissances de Base',
+        materialsTitle: 'Matériel Pédagogique',
+        examsTitle: 'Examens',
+        projectsTitle: 'Projets',
+        digitalTitle: 'Outils Numériques'
+      },
+      it: {
+        title: 'Clicker Educativo',
+        flavour: 'Apprendimento e Insegnamento Ludico',
+        namePlaceholder: 'Il tuo nome...',
+        clickBtn: 'Impara!',
+        clickBtnTeacher: 'Insegna!',
+        clickBtnStudent: 'Studia con impegno!',
+        resetBtn: 'Reset',
+        prestigePoints: 'Punti Prestigio',
+        prestigeShopTitle: 'Negozio Prestigio',
+        pClickMulti: 'Moltiplicatore Clic x2',
+        pAutoMulti: 'Moltiplicatore Auto x2',
+        pStartBonus: 'Valore Iniziale +1000',
+        pDiscount: 'Riduzione Costi',
+        cost: 'Costo',
+        buy: 'Comprare',
+        roleTitle: 'Scegli Ruolo',
+        chooseTeacher: 'Sono Insegnante',
+        chooseStudent: 'Sono Studente',
+        roleText: 'Nessun ruolo selezionato.',
+        roleTextTeacher: 'Insegnante – Condividere conoscenza',
+        roleTextStudent: 'Studente – Acquisire conoscenza',
+        teacherLabel: 'Competenza',
+        studentLabel: 'Sapere',
+        rank: 'Rango',
+        basicsTitle: 'Conoscenze di Base',
+        materialsTitle: 'Materiale Didattico',
+        examsTitle: 'Esami',
+        projectsTitle: 'Progetti',
+        digitalTitle: 'Strumenti Digitali'
+      },
+      pt: {
+        title: 'Clicker Educacional',
+        flavour: 'Aprendizagem e Ensino Lúdico',
+        namePlaceholder: 'Seu nome...',
+        clickBtn: 'Aprenda!',
+        clickBtnTeacher: 'Ensine!',
+        clickBtnStudent: 'Estude muito!',
+        resetBtn: 'Reiniciar',
+        prestigePoints: 'Pontos de Prestígio',
+        prestigeShopTitle: 'Loja de Prestígio',
+        pClickMulti: 'Multiplicador de Clique x2',
+        pAutoMulti: 'Multiplicador Auto x2',
+        pStartBonus: 'Valor Inicial +1000',
+        pDiscount: 'Redução de Custos',
+        cost: 'Custo',
+        buy: 'Comprar',
+        roleTitle: 'Escolher Papel',
+        chooseTeacher: 'Sou Professor/a',
+        chooseStudent: 'Sou Estudante',
+        roleText: 'Nenhum papel selecionado.',
+        roleTextTeacher: 'Professor/a – Compartilhar conhecimento',
+        roleTextStudent: 'Estudante – Adquirir conhecimento',
+        teacherLabel: 'Competência',
+        studentLabel: 'Saber',
+        rank: 'Classificação',
+        basicsTitle: 'Conhecimento Básico',
+        materialsTitle: 'Material Didático',
+        examsTitle: 'Exames',
+        projectsTitle: 'Projetos',
+        digitalTitle: 'Ferramentas Digitais'
+      },
+      nl: {
+        title: 'Onderwijs Clicker',
+        flavour: 'Speels Leren en Onderwijzen',
+        namePlaceholder: 'Jouw naam...',
+        clickBtn: 'Leer!',
+        clickBtnTeacher: 'Geef les!',
+        clickBtnStudent: 'Studeer hard!',
+        resetBtn: 'Reset',
+        prestigePoints: 'Prestige Punten',
+        prestigeShopTitle: 'Prestige Winkel',
+        pClickMulti: 'Klik Vermenigvuldiger x2',
+        pAutoMulti: 'Auto Vermenigvuldiger x2',
+        pStartBonus: 'Startwaarde +1000',
+        pDiscount: 'Kosten Vermindering',
+        cost: 'Kosten',
+        buy: 'Kopen',
+        roleTitle: 'Kies Rol',
+        chooseTeacher: 'Ik ben Leraar',
+        chooseStudent: 'Ik ben Leerling',
+        roleText: 'Geen rol geselecteerd.',
+        roleTextTeacher: 'Leraar – Kennis delen',
+        roleTextStudent: 'Leerling – Kennis opdoen',
+        teacherLabel: 'Competentie',
+        studentLabel: 'Kennis',
+        rank: 'Rang',
+        basicsTitle: 'Basiskennis',
+        materialsTitle: 'Lesmateriaal',
+        examsTitle: 'Examens',
+        projectsTitle: 'Projecten',
+        digitalTitle: 'Digitale Tools'
+      },
+      pl: {
+        title: 'Clicker Edukacyjny',
+        flavour: 'Zabawna Nauka i Nauczanie',
+        namePlaceholder: 'Twoje imię...',
+        clickBtn: 'Ucz się!',
+        clickBtnTeacher: 'Naucz!',
+        clickBtnStudent: 'Studiuj ciężko!',
+        resetBtn: 'Reset',
+        prestigePoints: 'Punkty Prestiżu',
+        prestigeShopTitle: 'Sklep Prestiżu',
+        pClickMulti: 'Mnożnik Kliknięcia x2',
+        pAutoMulti: 'Mnożnik Auto x2',
+        pStartBonus: 'Wartość Początkowa +1000',
+        pDiscount: 'Redukcja Kosztów',
+        cost: 'Koszt',
+        buy: 'Kup',
+        roleTitle: 'Wybierz Rolę',
+        chooseTeacher: 'Jestem Nauczycielem',
+        chooseStudent: 'Jestem Uczniem',
+        roleText: 'Nie wybrano roli.',
+        roleTextTeacher: 'Nauczyciel – Dzielenie się wiedzą',
+        roleTextStudent: 'Uczeń – Zdobywanie wiedzy',
+        teacherLabel: 'Kompetencja',
+        studentLabel: 'Wiedza',
+        rank: 'Ranga',
+        basicsTitle: 'Podstawowa Wiedza',
+        materialsTitle: 'Materiały Dydaktyczne',
+        examsTitle: 'Egzaminy',
+        projectsTitle: 'Projekty',
+        digitalTitle: 'Narzędzia Cyfrowe'
+      },
+      ru: {
+        title: 'Образовательный Кликер',
+        flavour: 'Игровое Обучение и Преподавание',
+        namePlaceholder: 'Ваше имя...',
+        clickBtn: 'Учись!',
+        clickBtnTeacher: 'Преподавай!',
+        clickBtnStudent: 'Учись усердно!',
+        resetBtn: 'Сброс',
+        prestigePoints: 'Очки Престижа',
+        prestigeShopTitle: 'Магазин Престижа',
+        pClickMulti: 'Множитель Клика x2',
+        pAutoMulti: 'Авто Множитель x2',
+        pStartBonus: 'Начальное Значение +1000',
+        pDiscount: 'Снижение Стоимости',
+        cost: 'Стоимость',
+        buy: 'Купить',
+        roleTitle: 'Выбрать Роль',
+        chooseTeacher: 'Я Учитель',
+        chooseStudent: 'Я Ученик',
+        roleText: 'Роль не выбрана.',
+        roleTextTeacher: 'Учитель – Делиться знаниями',
+        roleTextStudent: 'Ученик – Приобретать знания',
+        teacherLabel: 'Компетентность',
+        studentLabel: 'Знания',
+        rank: 'Ранг',
+        basicsTitle: 'Базовые Знания',
+        materialsTitle: 'Учебные Материалы',
+        examsTitle: 'Экзамены',
+        projectsTitle: 'Проекты',
+        digitalTitle: 'Цифровые Инструменты'
+      },
+      ja: {
+        title: '教育クリッカー',
+        flavour: '遊びながら学び教える',
+        namePlaceholder: 'あなたの名前...',
+        clickBtn: '学ぼう！',
+        clickBtnTeacher: '教えよう！',
+        clickBtnStudent: '一生懸命勉強しよう！',
+        resetBtn: 'リセット',
+        prestigePoints: 'プレステージポイント',
+        prestigeShopTitle: 'プレステージショップ',
+        pClickMulti: 'クリック倍率 x2',
+        pAutoMulti: '自動倍率 x2',
+        pStartBonus: '開始値 +1000',
+        pDiscount: 'コスト削減',
+        cost: 'コスト',
+        buy: '購入',
+        roleTitle: '役割を選ぶ',
+        chooseTeacher: '私は教師です',
+        chooseStudent: '私は生徒です',
+        roleText: '役割が選択されていません。',
+        roleTextTeacher: '教師 – 知識を共有する',
+        roleTextStudent: '生徒 – 知識を獲得する',
+        teacherLabel: '能力',
+        studentLabel: '知識',
+        rank: 'ランク',
+        basicsTitle: '基礎知識',
+        materialsTitle: '教材',
+        examsTitle: '試験',
+        projectsTitle: 'プロジェクト',
+        digitalTitle: 'デジタルツール'
+      }
+    };
+
     // Owned counters for all upgrades
     const owned = {
       basic1:0, basic2:0, basic3:0, basic4:0, basic5:0, basic6:0, basic7:0, basic8:0, basic9:0, basic10:0,
@@ -571,9 +893,65 @@
       playerName = e.target.value;
     });
 
+    function updateLanguage() {
+      const t = translations[lang];
+      document.getElementById('title').textContent = t.title;
+      document.getElementById('flavour').textContent = t.flavour;
+      document.getElementById('nameInput').placeholder = t.namePlaceholder;
+      document.getElementById('roleTitle').textContent = t.roleTitle;
+      document.getElementById('chooseTeacher').textContent = t.chooseTeacher;
+      document.getElementById('chooseStudent').textContent = t.chooseStudent;
+      document.getElementById('teacherLabel').textContent = t.teacherLabel;
+      document.getElementById('studentLabel').textContent = t.studentLabel;
+      document.getElementById('basicsTitle').textContent = t.basicsTitle;
+      document.getElementById('materialsTitle').textContent = t.materialsTitle;
+      document.getElementById('examsTitle').textContent = t.examsTitle;
+      document.getElementById('projectsTitle').textContent = t.projectsTitle;
+      document.getElementById('digitalTitle').textContent = t.digitalTitle;
+
+      // Update prestige shop
+      const prestigeShop = document.querySelector('#prestigeShop h2');
+      if (prestigeShop) prestigeShop.textContent = t.prestigeShopTitle;
+
+      if (role === 'teacher') {
+        btn.textContent = t.clickBtnTeacher;
+        document.getElementById('roleText').textContent = t.roleTextTeacher;
+      } else if (role === 'student') {
+        btn.textContent = t.clickBtnStudent;
+        document.getElementById('roleText').textContent = t.roleTextStudent;
+      } else {
+        btn.textContent = t.clickBtn;
+        document.getElementById('roleText').textContent = t.roleText;
+      }
+
+      // Update all buy buttons
+      document.querySelectorAll('.upgrader button, .prestigeUpgrade button').forEach(btn => {
+        btn.textContent = t.buy;
+      });
+
+      // Update prestige shop texts
+      const pClickSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(2) span');
+      const pAutoSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(3) span');
+      const pStartSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(4) span');
+      const pDiscountSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(5) span');
+
+      if (pClickSpan) pClickSpan.innerHTML = `${t.pClickMulti} (${t.cost}: <span id="pClickCost">${pClickCost}</span>)`;
+      if (pAutoSpan) pAutoSpan.innerHTML = `${t.pAutoMulti} (${t.cost}: <span id="pAutoCost">${pAutoCost}</span>)`;
+      if (pStartSpan) pStartSpan.innerHTML = `${t.pStartBonus} (${t.cost}: <span id="pStartCost">${pStartCost}</span>)`;
+      if (pDiscountSpan) pDiscountSpan.innerHTML = `${t.pDiscount} (${t.cost}: <span id="pDiscountCost">${pDiscountCost}</span>)`;
+
+      updateRank();
+    }
+
+    document.getElementById('langSelect').onchange = (e) => {
+      lang = e.target.value;
+      updateLanguage();
+    };
+
     function update() {
       counter.textContent = formatNumber(Math.floor(count));
-      prestigeCounter.textContent = 'Prestige-Punkte: ' + prestigePoints;
+      const t = translations[lang];
+      prestigeCounter.textContent = t.prestigePoints + ': ' + prestigePoints;
       updateButtonStates();
       checkUnlocks();
       updateResetButton();
@@ -939,7 +1317,8 @@
         else if (v > 30) r = 'Erstklässler';
       }
 
-      document.getElementById('rank').textContent = 'Rang: ' + r;
+      const t = translations[lang];
+      document.getElementById('rank').textContent = t.rank + ': ' + r;
     }
 
     // Update prestige shop buttons
@@ -950,6 +1329,7 @@
       document.getElementById('pDiscountBtn').disabled = prestigePoints < pDiscountCost;
     }, 100);
 
+    updateLanguage();
     update();
     updateRank();
   </script>
