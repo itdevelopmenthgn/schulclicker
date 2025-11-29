@@ -157,6 +157,10 @@
     }
     .upgrader button {
       flex-shrink:0;
+      white-space: normal;
+      line-height: 1.2;
+      padding: 8px 12px;
+      min-width: 80px;
     }
     #meters {
       display:flex;
@@ -283,9 +287,12 @@
         text-align:center;
       }
       .upgrader button {
-        padding:10px 16px;
-        font-size:0.9rem;
+        padding:8px 12px;
+        font-size:0.85rem;
         width:100%;
+        white-space: normal;
+        line-height: 1.2;
+        min-width: 70px;
       }
       #meters {
         width:100%;
@@ -328,17 +335,10 @@
     <select id="langSelect">
       <option value="de">Deutsch</option>
       <option value="en">English</option>
-      <option value="es">Español</option>
-      <option value="fr">Français</option>
-      <option value="it">Italiano</option>
-      <option value="pt">Português</option>
-      <option value="nl">Nederlands</option>
-      <option value="pl">Polski</option>
-      <option value="ru">Русский</option>
-      <option value="ja">日本語</option>
     </select>
 
     <select id="difficultySelect">
+      <option value="baby">Baby</option>
       <option value="easy">Leicht / Easy</option>
       <option value="medium" selected>Mittel / Medium</option>
       <option value="hard">Schwer / Hard</option>
@@ -357,8 +357,28 @@
 
   <input type="text" id="nameInput" placeholder="Dein Name..." maxlength="20">
 
+  <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin:10px 0;">
+    <span style="color:#4a90e2; font-weight:bold;" id="buyAmountLabel">Kaufen:</span>
+    <button id="buy1" style="background:#16213e; min-width:50px;">x1</button>
+    <button id="buy5" style="background:#16213e; min-width:50px;">x5</button>
+    <button id="buy10" style="background:#16213e; min-width:50px;">x10</button>
+  </div>
+
   <div id="counter">0</div>
   <div id="prestigeCounter">Prestige-Punkte: 0</div>
+  <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap; margin:10px;">
+    <div class="meterbox" style="background:#2a2a3e;">
+      <span id="perClickLabel">Pro Klick</span>: <span id="perClickDisplay">1</span>
+    </div>
+    <div class="meterbox" style="background:#2a2a3e;">
+      <span id="perSecLabel">Pro Sekunde</span>: <span id="perSecDisplay">0</span>
+    </div>
+  </div>
+
+  <div style="margin:15px 0; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+    <input type="text" id="cheatInput" placeholder="Cheat-Code..." maxlength="20" style="padding:12px; background:#16213e; color:#eee; border:1px solid #4a90e2; border-radius:8px; min-width:150px; text-align:center;">
+    <button id="cheatBtn" style="background:#dc3545;">🎮 Code eingeben</button>
+  </div>
 
   <div id="clickRow">
     <button id="clickBtn">Lerne!</button>
@@ -389,8 +409,8 @@
       <button id="pAutoBtn">Kaufen</button>
     </div>
     <div class="prestigeUpgrade">
-      <span>Startwert +1000 (Kosten: <span id="pStartCost">2</span>)</span>
-      <button id="pStartBtn">Kaufen</button>
+      <span id="pPointsLabel">+1 Prestigepunkt (Kosten: <span id="pPointsCost">2</span>)</span>
+      <button id="pPointsBtn">Kaufen</button>
     </div>
     <div class="prestigeUpgrade">
       <span>Kosten-Reduktion (Kosten: <span id="pDiscountCost">3</span>)</span>
@@ -494,13 +514,12 @@
     // Prestige multipliers
     let clickMultiplier = 1;
     let autoMultiplier = 1;
-    let startBonus = 0;
     let discountLevel = 0;
 
     // Prestige upgrade costs
     let pClickCost = 1;
     let pAutoCost = 1;
-    let pStartCost = 2;
+    let pPointsCost = 2;
     let pDiscountCost = 3;
 
     const counter = document.getElementById('counter');
@@ -509,10 +528,13 @@
     const resetBtn = document.getElementById('resetBtn');
     const achievementEl = document.getElementById('achievement');
     let lang = 'de';
+    let buyAmount = 1;
 
     // Difficulty multipliers
     function updateDifficultyMultiplier() {
-      if (difficulty === 'easy') {
+      if (difficulty === 'baby') {
+        difficultyMultiplier = 1 / 10; // Costs 10x cheaper
+      } else if (difficulty === 'easy') {
         difficultyMultiplier = 1 / 3; // Costs 3x cheaper
       } else if (difficulty === 'medium') {
         difficultyMultiplier = 1;
@@ -617,9 +639,19 @@
         codeExported: 'Code kopiert! In Zwischenablage.',
         codeImported: 'Code importiert!',
         invalidCode: 'Ungültiger Code!',
+        offlineProgress: 'Willkommen zurück! Während du weg warst ({time}), hast du {points} Punkte verdient!',
+        diffBaby: 'Baby',
         diffEasy: 'Leicht',
         diffMedium: 'Mittel',
         diffHard: 'Schwer',
+        perClickLabel: 'Pro Klick',
+        perSecLabel: 'Pro Sekunde',
+        cheatInput: 'Cheat-Code...',
+        cheatBtn: '🎮 Code eingeben',
+        cheatSuccess: 'Cheat aktiviert!',
+        cheatInvalid: 'Ungültiger Code!',
+        pPointsBonus: '+1 Prestigepunkt',
+        buyAmountLabel: 'Kaufen:',
         // Ranks Teacher
         rankNobelPreis: 'Nobelpreisträger',
         rankAkademieleiter: 'Akademieleiter',
@@ -744,9 +776,19 @@
         codeExported: 'Code copied to clipboard!',
         codeImported: 'Code imported!',
         invalidCode: 'Invalid code!',
+        offlineProgress: 'Welcome back! While you were away ({time}), you earned {points} points!',
+        diffBaby: 'Baby',
         diffEasy: 'Easy',
         diffMedium: 'Medium',
         diffHard: 'Hard',
+        perClickLabel: 'Per Click',
+        perSecLabel: 'Per Second',
+        cheatInput: 'Cheat Code...',
+        cheatBtn: '🎮 Enter Code',
+        cheatSuccess: 'Cheat activated!',
+        cheatInvalid: 'Invalid code!',
+        pPointsBonus: '+1 Prestige Point',
+        buyAmountLabel: 'Buy:',
         rankNobelPreis: 'Nobel Laureate',
         rankAkademieleiter: 'Academy Director',
         rankDekan: 'Dean',
@@ -775,850 +817,6 @@
         rankErstklaessler: 'First Grader',
         rankAnfaenger: 'Beginner'
       },
-      es: {
-        title: 'Clicker Educativo',
-        flavour: 'Aprendizaje y Enseñanza Lúdica',
-        namePlaceholder: 'Tu nombre...',
-        clickBtn: '¡Aprende!',
-        clickBtnTeacher: '¡Enseña!',
-        clickBtnStudent: '¡Estudia mucho!',
-        resetBtn: 'Reiniciar',
-        prestigePoints: 'Puntos de Prestigio',
-        prestigeShopTitle: 'Tienda de Prestigio',
-        pClickMulti: 'Multiplicador de Clic x2',
-        pAutoMulti: 'Multiplicador Auto x2',
-        pStartBonus: 'Valor Inicial +1000',
-        pDiscount: 'Reducción de Costos',
-        cost: 'Costo',
-        buy: 'Comprar',
-        roleTitle: 'Elegir Rol',
-        chooseTeacher: 'Soy Profesor/a',
-        chooseStudent: 'Soy Estudiante',
-        roleText: 'Ningún rol seleccionado.',
-        roleTextTeacher: 'Profesor/a – Compartir conocimiento',
-        roleTextStudent: 'Estudiante – Adquirir conocimiento',
-        teacherLabel: 'Competencia',
-        studentLabel: 'Conocimiento',
-        rank: 'Rango',
-        basicsTitle: 'Conocimiento Básico',
-        materialsTitle: 'Material Didáctico',
-        examsTitle: 'Exámenes',
-        projectsTitle: 'Proyectos',
-        digitalTitle: 'Herramientas Digitales',
-        basic1: 'Aprender a Leer (+1/clic)',
-        basic2: 'Practicar Escritura (+2/clic)',
-        basic3: 'Practicar Matemáticas (+3/clic)',
-        basic4: 'Aprender Vocabulario (+5/clic)',
-        basic5: 'Entender Gramática (+7/clic)',
-        basic6: 'Aprender Fórmulas (+10/clic)',
-        basic7: 'Reconocer Conexiones (+14/clic)',
-        basic8: 'Entender Conceptos (+20/clic)',
-        basic9: 'Conectar Conocimiento (+28/clic)',
-        basic10: 'Maestría (+40/clic)',
-        mat1: 'Hojas de Trabajo (+1/seg)',
-        mat2: 'Libros de Texto (+2/seg)',
-        mat3: 'Cuadernos (+4/seg)',
-        mat4: 'Tarjetas de Estudio (+7/seg)',
-        mat5: 'Enciclopedia (+11/seg)',
-        mat6: 'Literatura Especializada (+17/seg)',
-        mat7: 'Biblioteca (+25/seg)',
-        mat8: 'Colección (+36/seg)',
-        mat9: 'Archivo (+50/seg)',
-        mat10: 'Biblioteca Universal (+70/seg)',
-        mat11: 'Centro de Conocimiento (+100/seg)',
-        mat12: 'Omnibiblioteca (+140/seg)',
-        exam1: 'Pruebas (+2/clic, +10/seg)',
-        exam2: 'Exámenes de Clase (+4/clic, +20/seg)',
-        exam3: 'Exámenes Escritos (+7/clic, +35/seg)',
-        exam4: 'Examinaciones (+11/clic, +55/seg)',
-        exam5: 'Examen de Estado (+17/clic, +85/seg)',
-        exam6: 'Examen de Maestría (+25/clic, +125/seg)',
-        exam7: 'Examen Doctoral (+36/clic, +180/seg)',
-        exam8: 'Examen de Profesor (+50/clic, +250/seg)',
-        exam9: 'Prueba Académica (+70/clic, +350/seg)',
-        exam10: 'Examen Universal (+100/clic, +500/seg)',
-        proj1: 'Informe (+30/clic, +150/seg)',
-        proj2: 'Presentación (+50/clic, +250/seg)',
-        proj3: 'Trabajo en Grupo (+80/clic, +400/seg)',
-        proj4: 'Trabajo Final (+120/clic, +600/seg)',
-        proj5: 'Investigación (+180/clic, +900/seg)',
-        proj6: 'Tesis (+260/clic, +1300/seg)',
-        proj7: 'Disertación (+370/clic, +1850/seg)',
-        proj8: 'Habilitación (+520/clic, +2600/seg)',
-        proj9: 'Libro de Texto (+720/clic, +3600/seg)',
-        proj10: 'Obra de Vida (+1000/clic, +5000/seg)',
-        dig1: 'Calculadora (+400/clic, +2000/seg)',
-        dig2: 'Computadora (+700/clic, +3500/seg)',
-        dig3: 'Apps de Aprendizaje (+1100/clic, +5500/seg)',
-        dig4: 'Cursos Online (+1700/clic, +8500/seg)',
-        dig5: 'Aprendizaje VR (+2500/clic, +12500/seg)',
-        dig6: 'Tutor IA (+3700/clic, +18500/seg)',
-        dig7: 'Computadora Cuántica (+5300/clic, +26500/seg)',
-        dig8: 'Chip Nano de Aprendizaje (+7500/clic, +37500/seg)',
-        dig9: 'Holocubierta (+10500/clic, +52500/seg)',
-        dig10: 'Interfaz Matrix (+14500/clic, +72500/seg)',
-        dig11: 'Carga Mental (+20000/clic, +100000/seg)',
-        dig12: 'Omnisciencia (+28000/clic, +140000/seg)',
-        saveBtn: '💾 Guardar',
-        loadBtn: '📂 Cargar',
-        exportBtn: '📋 Exportar Código',
-        importBtn: '📥 Importar Código',
-        gameSaved: '¡Juego guardado!',
-        gameLoaded: '¡Partida cargada!',
-        noSaveFound: '¡No se encontró partida guardada!',
-        codeExported: '¡Código copiado!',
-        codeImported: '¡Código importado!',
-        invalidCode: '¡Código inválido!',
-        diffEasy: 'Fácil',
-        diffMedium: 'Medio',
-        diffHard: 'Difícil',
-        rankNobelPreis: 'Premio Nobel',
-        rankAkademieleiter: 'Director de Academia',
-        rankDekan: 'Decano',
-        rankProfessor: 'Profesor',
-        rankDozent: 'Docente',
-        rankPrivatdozent: 'Docente Privado',
-        rankOberlehrer: 'Profesor Superior',
-        rankStudiendirektor: 'Director de Estudios',
-        rankFachleiter: 'Jefe de Materia',
-        rankErfahrenerLehrer: 'Profesor Experimentado',
-        rankJunglehrer: 'Profesor Joven',
-        rankReferendar: 'Profesor en Prácticas',
-        rankPraktikant: 'Practicante',
-        rankUniversalgenie: 'Genio Universal',
-        rankPhilosoph: 'Filósofo',
-        rankKoryphae: 'Autoridad',
-        rankGelehrter: 'Erudito',
-        rankDoktor: 'Doctor',
-        rankMagister: 'Magíster',
-        rankBachelor: 'Licenciado',
-        rankStudent: 'Estudiante',
-        rankAbiturient: 'Graduado',
-        rankMusterschueler: 'Estudiante Modelo',
-        rankKlassenbester: 'Mejor de la Clase',
-        rankFleissigerSchueler: 'Estudiante Diligente',
-        rankErstklaessler: 'Primer Grado',
-        rankAnfaenger: 'Principiante'
-      },
-      fr: {
-        title: 'Clicker Éducatif',
-        flavour: 'Apprentissage et Enseignement Ludique',
-        namePlaceholder: 'Votre nom...',
-        clickBtn: 'Apprends!',
-        clickBtnTeacher: 'Enseigne!',
-        clickBtnStudent: 'Étudie avec ardeur!',
-        resetBtn: 'Réinitialiser',
-        prestigePoints: 'Points de Prestige',
-        prestigeShopTitle: 'Boutique de Prestige',
-        pClickMulti: 'Multiplicateur de Clic x2',
-        pAutoMulti: 'Multiplicateur Auto x2',
-        pStartBonus: 'Valeur de Départ +1000',
-        pDiscount: 'Réduction des Coûts',
-        cost: 'Coût',
-        buy: 'Acheter',
-        roleTitle: 'Choisir un Rôle',
-        chooseTeacher: 'Je suis Enseignant(e)',
-        chooseStudent: 'Je suis Élève',
-        roleText: 'Aucun rôle sélectionné.',
-        roleTextTeacher: 'Enseignant(e) – Partager les connaissances',
-        roleTextStudent: 'Élève – Acquérir des connaissances',
-        teacherLabel: 'Compétence',
-        studentLabel: 'Savoir',
-        rank: 'Rang',
-        basicsTitle: 'Connaissances de Base',
-        materialsTitle: 'Matériel Pédagogique',
-        examsTitle: 'Examens',
-        projectsTitle: 'Projets',
-        digitalTitle: 'Outils Numériques',
-        basic1: 'Apprendre à Lire (+1/clic)',
-        basic2: 'Pratiquer l\'Écriture (+2/clic)',
-        basic3: 'Pratiquer les Maths (+3/clic)',
-        basic4: 'Apprendre le Vocabulaire (+5/clic)',
-        basic5: 'Comprendre la Grammaire (+7/clic)',
-        basic6: 'Apprendre les Formules (+10/clic)',
-        basic7: 'Reconnaître les Connexions (+14/clic)',
-        basic8: 'Comprendre les Concepts (+20/clic)',
-        basic9: 'Réseauter les Connaissances (+28/clic)',
-        basic10: 'Maîtrise (+40/clic)',
-        mat1: 'Fiches de Travail (+1/sec)',
-        mat2: 'Manuels (+2/sec)',
-        mat3: 'Cahiers d\'Exercices (+4/sec)',
-        mat4: 'Cartes Mémoire (+7/sec)',
-        mat5: 'Encyclopédie (+11/sec)',
-        mat6: 'Littérature Spécialisée (+17/sec)',
-        mat7: 'Bibliothèque (+25/sec)',
-        mat8: 'Collection (+36/sec)',
-        mat9: 'Archives (+50/sec)',
-        mat10: 'Bibliothèque Universelle (+70/sec)',
-        mat11: 'Centre de Connaissances (+100/sec)',
-        mat12: 'Omnibibliothèque (+140/sec)',
-        exam1: 'Tests (+2/clic, +10/sec)',
-        exam2: 'Contrôles (+4/clic, +20/sec)',
-        exam3: 'Examens Écrits (+7/clic, +35/sec)',
-        exam4: 'Épreuves (+11/clic, +55/sec)',
-        exam5: 'Examen d\'État (+17/clic, +85/sec)',
-        exam6: 'Examen de Maîtrise (+25/clic, +125/sec)',
-        exam7: 'Examen Doctoral (+36/clic, +180/sec)',
-        exam8: 'Examen de Professeur (+50/clic, +250/sec)',
-        exam9: 'Test Académique (+70/clic, +350/sec)',
-        exam10: 'Examen Universel (+100/clic, +500/sec)',
-        proj1: 'Exposé (+30/clic, +150/sec)',
-        proj2: 'Présentation (+50/clic, +250/sec)',
-        proj3: 'Travail de Groupe (+80/clic, +400/sec)',
-        proj4: 'Mémoire (+120/clic, +600/sec)',
-        proj5: 'Recherche (+180/clic, +900/sec)',
-        proj6: 'Thèse (+260/clic, +1300/sec)',
-        proj7: 'Dissertation (+370/clic, +1850/sec)',
-        proj8: 'Habilitation (+520/clic, +2600/sec)',
-        proj9: 'Manuel (+720/clic, +3600/sec)',
-        proj10: 'Œuvre de Vie (+1000/clic, +5000/sec)',
-        dig1: 'Calculatrice (+400/clic, +2000/sec)',
-        dig2: 'Ordinateur (+700/clic, +3500/sec)',
-        dig3: 'Apps d\'Apprentissage (+1100/clic, +5500/sec)',
-        dig4: 'Cours en Ligne (+1700/clic, +8500/sec)',
-        dig5: 'Environnement VR (+2500/clic, +12500/sec)',
-        dig6: 'Tuteur IA (+3700/clic, +18500/sec)',
-        dig7: 'Ordinateur Quantique (+5300/clic, +26500/sec)',
-        dig8: 'Puce Nano d\'Apprentissage (+7500/clic, +37500/sec)',
-        dig9: 'Holodeck (+10500/clic, +52500/sec)',
-        dig10: 'Interface Matrix (+14500/clic, +72500/sec)',
-        dig11: 'Téléchargement Mental (+20000/clic, +100000/sec)',
-        dig12: 'Omniscience (+28000/clic, +140000/sec)',
-        saveBtn: '💾 Sauvegarder',
-        loadBtn: '📂 Charger',
-        exportBtn: '📋 Exporter Code',
-        importBtn: '📥 Importer Code',
-        gameSaved: 'Jeu sauvegardé!',
-        gameLoaded: 'Partie chargée!',
-        noSaveFound: 'Aucune sauvegarde trouvée!',
-        codeExported: 'Code copié!',
-        codeImported: 'Code importé!',
-        invalidCode: 'Code invalide!',
-        diffEasy: 'Facile',
-        diffMedium: 'Moyen',
-        diffHard: 'Difficile',
-        rankNobelPreis: 'Prix Nobel',
-        rankAkademieleiter: 'Directeur d\'Académie',
-        rankDekan: 'Doyen',
-        rankProfessor: 'Professeur',
-        rankDozent: 'Maître de Conférences',
-        rankPrivatdozent: 'Privat-Docent',
-        rankOberlehrer: 'Professeur Principal',
-        rankStudiendirektor: 'Directeur des Études',
-        rankFachleiter: 'Chef de Département',
-        rankErfahrenerLehrer: 'Enseignant Expérimenté',
-        rankJunglehrer: 'Jeune Enseignant',
-        rankReferendar: 'Stagiaire',
-        rankPraktikant: 'Stagiaire',
-        rankUniversalgenie: 'Génie Universel',
-        rankPhilosoph: 'Philosophe',
-        rankKoryphae: 'Autorité',
-        rankGelehrter: 'Érudit',
-        rankDoktor: 'Docteur',
-        rankMagister: 'Magistère',
-        rankBachelor: 'Licence',
-        rankStudent: 'Étudiant',
-        rankAbiturient: 'Bachelier',
-        rankMusterschueler: 'Élève Modèle',
-        rankKlassenbester: 'Premier de Classe',
-        rankFleissigerSchueler: 'Élève Assidu',
-        rankErstklaessler: 'CP',
-        rankAnfaenger: 'Débutant'
-      },
-      it: {
-        title: 'Clicker Educativo',
-        flavour: 'Apprendimento e Insegnamento Ludico',
-        namePlaceholder: 'Il tuo nome...',
-        clickBtn: 'Impara!',
-        clickBtnTeacher: 'Insegna!',
-        clickBtnStudent: 'Studia con impegno!',
-        resetBtn: 'Reset',
-        prestigePoints: 'Punti Prestigio',
-        prestigeShopTitle: 'Negozio Prestigio',
-        pClickMulti: 'Moltiplicatore Clic x2',
-        pAutoMulti: 'Moltiplicatore Auto x2',
-        pStartBonus: 'Valore Iniziale +1000',
-        pDiscount: 'Riduzione Costi',
-        cost: 'Costo',
-        buy: 'Comprare',
-        roleTitle: 'Scegli Ruolo',
-        chooseTeacher: 'Sono Insegnante',
-        chooseStudent: 'Sono Studente',
-        roleText: 'Nessun ruolo selezionato.',
-        roleTextTeacher: 'Insegnante – Condividere conoscenza',
-        roleTextStudent: 'Studente – Acquisire conoscenza',
-        teacherLabel: 'Competenza',
-        studentLabel: 'Sapere',
-        rank: 'Rango',
-        basicsTitle: 'Conoscenze di Base',
-        materialsTitle: 'Materiale Didattico',
-        examsTitle: 'Esami',
-        projectsTitle: 'Progetti',
-        digitalTitle: 'Strumenti Digitali',
-        basic1: 'Imparare a Leggere (+1/clic)',
-        basic2: 'Praticare Scrittura (+2/clic)',
-        basic3: 'Praticare Matematica (+3/clic)',
-        basic4: 'Imparare Vocabolario (+5/clic)',
-        basic5: 'Capire Grammatica (+7/clic)',
-        basic6: 'Imparare Formule (+10/clic)',
-        basic7: 'Riconoscere Connessioni (+14/clic)',
-        basic8: 'Capire Concetti (+20/clic)',
-        basic9: 'Connettere Sapere (+28/clic)',
-        basic10: 'Maestria (+40/clic)',
-        mat1: 'Schede di Lavoro (+1/sec)',
-        mat2: 'Libri di Testo (+2/sec)',
-        mat3: 'Quaderni (+4/sec)',
-        mat4: 'Schede Didattiche (+7/sec)',
-        mat5: 'Enciclopedia (+11/sec)',
-        mat6: 'Letteratura Specializzata (+17/sec)',
-        mat7: 'Biblioteca (+25/sec)',
-        mat8: 'Collezione (+36/sec)',
-        mat9: 'Archivio (+50/sec)',
-        mat10: 'Biblioteca Universale (+70/sec)',
-        mat11: 'Centro Conoscenza (+100/sec)',
-        mat12: 'Omnibiblioteca (+140/sec)',
-        exam1: 'Test (+2/clic, +10/sec)',
-        exam2: 'Verifiche (+4/clic, +20/sec)',
-        exam3: 'Esami Scritti (+7/clic, +35/sec)',
-        exam4: 'Prove (+11/clic, +55/sec)',
-        exam5: 'Esame di Stato (+17/clic, +85/sec)',
-        exam6: 'Esame Maestro (+25/clic, +125/sec)',
-        exam7: 'Esame Dottorato (+36/clic, +180/sec)',
-        exam8: 'Esame Professore (+50/clic, +250/sec)',
-        exam9: 'Test Accademico (+70/clic, +350/sec)',
-        exam10: 'Esame Universale (+100/clic, +500/sec)',
-        proj1: 'Relazione (+30/clic, +150/sec)',
-        proj2: 'Presentazione (+50/clic, +250/sec)',
-        proj3: 'Lavoro di Gruppo (+80/clic, +400/sec)',
-        proj4: 'Tesina (+120/clic, +600/sec)',
-        proj5: 'Ricerca (+180/clic, +900/sec)',
-        proj6: 'Tesi (+260/clic, +1300/sec)',
-        proj7: 'Dissertazione (+370/clic, +1850/sec)',
-        proj8: 'Abilitazione (+520/clic, +2600/sec)',
-        proj9: 'Libro di Testo (+720/clic, +3600/sec)',
-        proj10: 'Opera di Vita (+1000/clic, +5000/sec)',
-        dig1: 'Calcolatrice (+400/clic, +2000/sec)',
-        dig2: 'Computer (+700/clic, +3500/sec)',
-        dig3: 'App Didattiche (+1100/clic, +5500/sec)',
-        dig4: 'Corsi Online (+1700/clic, +8500/sec)',
-        dig5: 'Apprendimento VR (+2500/clic, +12500/sec)',
-        dig6: 'Tutor IA (+3700/clic, +18500/sec)',
-        dig7: 'Computer Quantistico (+5300/clic, +26500/sec)',
-        dig8: 'Chip Nano di Apprendimento (+7500/clic, +37500/sec)',
-        dig9: 'Holodeck (+10500/clic, +52500/sec)',
-        dig10: 'Interfaccia Matrix (+14500/clic, +72500/sec)',
-        dig11: 'Caricamento Mentale (+20000/clic, +100000/sec)',
-        dig12: 'Onniscienza (+28000/clic, +140000/sec)',
-        saveBtn: '💾 Salva',
-        loadBtn: '📂 Carica',
-        exportBtn: '📋 Esporta Codice',
-        importBtn: '📥 Importa Codice',
-        gameSaved: 'Gioco salvato!',
-        gameLoaded: 'Partita caricata!',
-        noSaveFound: 'Nessun salvataggio trovato!',
-        codeExported: 'Codice copiato!',
-        codeImported: 'Codice importato!',
-        invalidCode: 'Codice non valido!',
-        diffEasy: 'Facile',
-        diffMedium: 'Medio',
-        diffHard: 'Difficile',
-        rankNobelPreis: 'Premio Nobel', rankAkademieleiter: 'Direttore Accademico', rankDekan: 'Preside', rankProfessor: 'Professore', rankDozent: 'Docente', rankPrivatdozent: 'Docente Privato', rankOberlehrer: 'Insegnante Senior', rankStudiendirektor: 'Direttore di Studi', rankFachleiter: 'Capo Materia', rankErfahrenerLehrer: 'Insegnante Esperto', rankJunglehrer: 'Giovane Insegnante', rankReferendar: 'Tirocinante', rankPraktikant: 'Praticante', rankUniversalgenie: 'Genio Universale', rankPhilosoph: 'Filosofo', rankKoryphae: 'Autorità', rankGelehrter: 'Erudito', rankDoktor: 'Dottore', rankMagister: 'Maestro', rankBachelor: 'Laurea', rankStudent: 'Studente', rankAbiturient: 'Diplomato', rankMusterschueler: 'Studente Modello', rankKlassenbester: 'Primo della Classe', rankFleissigerSchueler: 'Studente Diligente', rankErstklaessler: 'Prima Elementare', rankAnfaenger: 'Principiante'
-      },
-      pt: {
-        title: 'Clicker Educacional',
-        flavour: 'Aprendizagem e Ensino Lúdico',
-        namePlaceholder: 'Seu nome...',
-        clickBtn: 'Aprenda!',
-        clickBtnTeacher: 'Ensine!',
-        clickBtnStudent: 'Estude muito!',
-        resetBtn: 'Reiniciar',
-        prestigePoints: 'Pontos de Prestígio',
-        prestigeShopTitle: 'Loja de Prestígio',
-        pClickMulti: 'Multiplicador de Clique x2',
-        pAutoMulti: 'Multiplicador Auto x2',
-        pStartBonus: 'Valor Inicial +1000',
-        pDiscount: 'Redução de Custos',
-        cost: 'Custo',
-        buy: 'Comprar',
-        roleTitle: 'Escolher Papel',
-        chooseTeacher: 'Sou Professor/a',
-        chooseStudent: 'Sou Estudante',
-        roleText: 'Nenhum papel selecionado.',
-        roleTextTeacher: 'Professor/a – Compartilhar conhecimento',
-        roleTextStudent: 'Estudante – Adquirir conhecimento',
-        teacherLabel: 'Competência',
-        studentLabel: 'Saber',
-        rank: 'Classificação',
-        basicsTitle: 'Conhecimento Básico',
-        materialsTitle: 'Material Didático',
-        examsTitle: 'Exames',
-        projectsTitle: 'Projetos',
-        digitalTitle: 'Ferramentas Digitais',
-        basic1: 'Aprender a Ler (+1/clique)',
-        basic2: 'Praticar Escrita (+2/clique)',
-        basic3: 'Praticar Matemática (+3/clique)',
-        basic4: 'Aprender Vocabulário (+5/clique)',
-        basic5: 'Entender Gramática (+7/clique)',
-        basic6: 'Aprender Fórmulas (+10/clique)',
-        basic7: 'Reconhecer Conexões (+14/clique)',
-        basic8: 'Entender Conceitos (+20/clique)',
-        basic9: 'Conectar Saber (+28/clique)',
-        basic10: 'Maestria (+40/clique)',
-        mat1: 'Folhas de Trabalho (+1/seg)',
-        mat2: 'Livros Didáticos (+2/seg)',
-        mat3: 'Cadernos (+4/seg)',
-        mat4: 'Cartões de Estudo (+7/seg)',
-        mat5: 'Enciclopédia (+11/seg)',
-        mat6: 'Literatura Especializada (+17/seg)',
-        mat7: 'Biblioteca (+25/seg)',
-        mat8: 'Coleção (+36/seg)',
-        mat9: 'Arquivo (+50/seg)',
-        mat10: 'Biblioteca Universal (+70/seg)',
-        mat11: 'Centro de Conhecimento (+100/seg)',
-        mat12: 'Omnibiblioteca (+140/seg)',
-        exam1: 'Testes (+2/clique, +10/seg)',
-        exam2: 'Provas de Classe (+4/clique, +20/seg)',
-        exam3: 'Provas Escritas (+7/clique, +35/seg)',
-        exam4: 'Examinações (+11/clique, +55/seg)',
-        exam5: 'Exame de Estado (+17/clique, +85/seg)',
-        exam6: 'Exame de Mestrado (+25/clique, +125/seg)',
-        exam7: 'Exame Doutoral (+36/clique, +180/seg)',
-        exam8: 'Exame de Professor (+50/clique, +250/seg)',
-        exam9: 'Teste Acadêmico (+70/clique, +350/seg)',
-        exam10: 'Exame Universal (+100/clique, +500/seg)',
-        proj1: 'Relatório (+30/clique, +150/seg)',
-        proj2: 'Apresentação (+50/clique, +250/seg)',
-        proj3: 'Trabalho em Grupo (+80/clique, +400/seg)',
-        proj4: 'Trabalho Final (+120/clique, +600/seg)',
-        proj5: 'Pesquisa (+180/clique, +900/seg)',
-        proj6: 'Tese (+260/clique, +1300/seg)',
-        proj7: 'Dissertação (+370/clique, +1850/seg)',
-        proj8: 'Habilitação (+520/clique, +2600/seg)',
-        proj9: 'Livro Didático (+720/clique, +3600/seg)',
-        proj10: 'Obra de Vida (+1000/clique, +5000/seg)',
-        dig1: 'Calculadora (+400/clique, +2000/seg)',
-        dig2: 'Computador (+700/clique, +3500/seg)',
-        dig3: 'Apps de Aprendizagem (+1100/clique, +5500/seg)',
-        dig4: 'Cursos Online (+1700/clique, +8500/seg)',
-        dig5: 'Aprendizagem VR (+2500/clique, +12500/seg)',
-        dig6: 'Tutor IA (+3700/clique, +18500/seg)',
-        dig7: 'Computador Quântico (+5300/clique, +26500/seg)',
-        dig8: 'Chip Nano de Aprendizagem (+7500/clique, +37500/seg)',
-        dig9: 'Holodeck (+10500/clique, +52500/seg)',
-        dig10: 'Interface Matrix (+14500/clique, +72500/seg)',
-        dig11: 'Carregamento Mental (+20000/clique, +100000/seg)',
-        dig12: 'Onisciência (+28000/clique, +140000/seg)',
-        saveBtn: '💾 Salvar',
-        loadBtn: '📂 Carregar',
-        exportBtn: '📋 Exportar Código',
-        importBtn: '📥 Importar Código',
-        gameSaved: 'Jogo salvo!',
-        gameLoaded: 'Jogo carregado!',
-        noSaveFound: 'Nenhum salvamento encontrado!',
-        codeExported: 'Código copiado!',
-        codeImported: 'Código importado!',
-        invalidCode: 'Código inválido!',
-        diffEasy: 'Fácil',
-        diffMedium: 'Médio',
-        diffHard: 'Difícil',
-        rankNobelPreis: 'Prêmio Nobel', rankAkademieleiter: 'Diretor Acadêmico', rankDekan: 'Decano', rankProfessor: 'Professor', rankDozent: 'Docente', rankPrivatdozent: 'Docente Privado', rankOberlehrer: 'Professor Sênior', rankStudiendirektor: 'Diretor de Estudos', rankFachleiter: 'Chefe de Departamento', rankErfahrenerLehrer: 'Professor Experiente', rankJunglehrer: 'Professor Jovem', rankReferendar: 'Estagiário', rankPraktikant: 'Praticante', rankUniversalgenie: 'Gênio Universal', rankPhilosoph: 'Filósofo', rankKoryphae: 'Autoridade', rankGelehrter: 'Erudito', rankDoktor: 'Doutor', rankMagister: 'Mestre', rankBachelor: 'Bacharel', rankStudent: 'Estudante', rankAbiturient: 'Graduando', rankMusterschueler: 'Aluno Modelo', rankKlassenbester: 'Melhor da Turma', rankFleissigerSchueler: 'Aluno Diligente', rankErstklaessler: 'Primeira Série', rankAnfaenger: 'Iniciante'
-      },
-      nl: {
-        title: 'Onderwijs Clicker',
-        flavour: 'Speels Leren en Onderwijzen',
-        namePlaceholder: 'Jouw naam...',
-        clickBtn: 'Leer!',
-        clickBtnTeacher: 'Geef les!',
-        clickBtnStudent: 'Studeer hard!',
-        resetBtn: 'Reset',
-        prestigePoints: 'Prestige Punten',
-        prestigeShopTitle: 'Prestige Winkel',
-        pClickMulti: 'Klik Vermenigvuldiger x2',
-        pAutoMulti: 'Auto Vermenigvuldiger x2',
-        pStartBonus: 'Startwaarde +1000',
-        pDiscount: 'Kosten Vermindering',
-        cost: 'Kosten',
-        buy: 'Kopen',
-        roleTitle: 'Kies Rol',
-        chooseTeacher: 'Ik ben Leraar',
-        chooseStudent: 'Ik ben Leerling',
-        roleText: 'Geen rol geselecteerd.',
-        roleTextTeacher: 'Leraar – Kennis delen',
-        roleTextStudent: 'Leerling – Kennis opdoen',
-        teacherLabel: 'Competentie',
-        studentLabel: 'Kennis',
-        rank: 'Rang',
-        basicsTitle: 'Basiskennis',
-        materialsTitle: 'Lesmateriaal',
-        examsTitle: 'Examens',
-        projectsTitle: 'Projecten',
-        digitalTitle: 'Digitale Tools',
-        basic1: 'Leren Lezen (+1/klik)',
-        basic2: 'Schrijven Oefenen (+2/klik)',
-        basic3: 'Rekenen Oefenen (+3/klik)',
-        basic4: 'Woordenschat Leren (+5/klik)',
-        basic5: 'Grammatica Begrijpen (+7/klik)',
-        basic6: 'Formules Leren (+10/klik)',
-        basic7: 'Verbanden Herkennen (+14/klik)',
-        basic8: 'Concepten Begrijpen (+20/klik)',
-        basic9: 'Kennis Verbinden (+28/klik)',
-        basic10: 'Meesterschap (+40/klik)',
-        mat1: 'Werkbladen (+1/sec)',
-        mat2: 'Leerboeken (+2/sec)',
-        mat3: 'Oefenboeken (+4/sec)',
-        mat4: 'Leerkaarten (+7/sec)',
-        mat5: 'Encyclopedie (+11/sec)',
-        mat6: 'Vakliteratuur (+17/sec)',
-        mat7: 'Bibliotheek (+25/sec)',
-        mat8: 'Verzameling (+36/sec)',
-        mat9: 'Archief (+50/sec)',
-        mat10: 'Universele Bibliotheek (+70/sec)',
-        mat11: 'Kenniscentrum (+100/sec)',
-        mat12: 'Omnibibliotheek (+140/sec)',
-        exam1: 'Toetsen (+2/klik, +10/sec)',
-        exam2: 'Proefwerken (+4/klik, +20/sec)',
-        exam3: 'Schriftelijke Examens (+7/klik, +35/sec)',
-        exam4: 'Examens (+11/klik, +55/sec)',
-        exam5: 'Staatsexamen (+17/klik, +85/sec)',
-        exam6: 'Meesterexamen (+25/klik, +125/sec)',
-        exam7: 'Doctoraal Examen (+36/klik, +180/sec)',
-        exam8: 'Professorexamen (+50/klik, +250/sec)',
-        exam9: 'Academische Test (+70/klik, +350/sec)',
-        exam10: 'Universeel Examen (+100/klik, +500/sec)',
-        proj1: 'Verslag (+30/klik, +150/sec)',
-        proj2: 'Presentatie (+50/klik, +250/sec)',
-        proj3: 'Groepswerk (+80/klik, +400/sec)',
-        proj4: 'Werkstuk (+120/klik, +600/sec)',
-        proj5: 'Onderzoek (+180/klik, +900/sec)',
-        proj6: 'Scriptie (+260/klik, +1300/sec)',
-        proj7: 'Dissertatie (+370/klik, +1850/sec)',
-        proj8: 'Habilitatie (+520/klik, +2600/sec)',
-        proj9: 'Leerboek (+720/klik, +3600/sec)',
-        proj10: 'Levenswerk (+1000/klik, +5000/sec)',
-        dig1: 'Rekenmachine (+400/klik, +2000/sec)',
-        dig2: 'Computer (+700/klik, +3500/sec)',
-        dig3: 'Leer-Apps (+1100/klik, +5500/sec)',
-        dig4: 'Online Cursussen (+1700/klik, +8500/sec)',
-        dig5: 'VR-Leeromgeving (+2500/klik, +12500/sec)',
-        dig6: 'AI-Tutor (+3700/klik, +18500/sec)',
-        dig7: 'Quantumcomputer (+5300/klik, +26500/sec)',
-        dig8: 'Nano-Leerchip (+7500/klik, +37500/sec)',
-        dig9: 'Holodeck (+10500/klik, +52500/sec)',
-        dig10: 'Matrix Interface (+14500/klik, +72500/sec)',
-        dig11: 'Gedachte-Upload (+20000/klik, +100000/sec)',
-        dig12: 'Alwetendheid (+28000/klik, +140000/sec)',
-        saveBtn: '💾 Opslaan',
-        loadBtn: '📂 Laden',
-        exportBtn: '📋 Code Exporteren',
-        importBtn: '📥 Code Importeren',
-        gameSaved: 'Spel opgeslagen!',
-        gameLoaded: 'Spel geladen!',
-        noSaveFound: 'Geen opgeslagen spel gevonden!',
-        codeExported: 'Code gekopieerd!',
-        codeImported: 'Code geïmporteerd!',
-        invalidCode: 'Ongeldige code!',
-        diffEasy: 'Makkelijk',
-        diffMedium: 'Gemiddeld',
-        diffHard: 'Moeilijk',
-        rankNobelPreis: 'Nobelprijs', rankAkademieleiter: 'Academiedirecteur', rankDekan: 'Decaan', rankProfessor: 'Professor', rankDozent: 'Docent', rankPrivatdozent: 'Privédocent', rankOberlehrer: 'Senior Leraar', rankStudiendirektor: 'Studiedirecteur', rankFachleiter: 'Vakcoördinator', rankErfahrenerLehrer: 'Ervaren Leraar', rankJunglehrer: 'Jonge Leraar', rankReferendar: 'Stagiair', rankPraktikant: 'Praktijkwerker', rankUniversalgenie: 'Universeel Genie', rankPhilosoph: 'Filosoof', rankKoryphae: 'Autoriteit', rankGelehrter: 'Geleerde', rankDoktor: 'Doctor', rankMagister: 'Meester', rankBachelor: 'Bachelor', rankStudent: 'Student', rankAbiturient: 'Eindexamenkandidaat', rankMusterschueler: 'Modelstudent', rankKlassenbester: 'Klassenprimus', rankFleissigerSchueler: 'Ijverige Student', rankErstklaessler: 'Eersteklasser', rankAnfaenger: 'Beginner'
-      },
-      pl: {
-        title: 'Clicker Edukacyjny',
-        flavour: 'Zabawna Nauka i Nauczanie',
-        namePlaceholder: 'Twoje imię...',
-        clickBtn: 'Ucz się!',
-        clickBtnTeacher: 'Naucz!',
-        clickBtnStudent: 'Studiuj ciężko!',
-        resetBtn: 'Reset',
-        prestigePoints: 'Punkty Prestiżu',
-        prestigeShopTitle: 'Sklep Prestiżu',
-        pClickMulti: 'Mnożnik Kliknięcia x2',
-        pAutoMulti: 'Mnożnik Auto x2',
-        pStartBonus: 'Wartość Początkowa +1000',
-        pDiscount: 'Redukcja Kosztów',
-        cost: 'Koszt',
-        buy: 'Kup',
-        roleTitle: 'Wybierz Rolę',
-        chooseTeacher: 'Jestem Nauczycielem',
-        chooseStudent: 'Jestem Uczniem',
-        roleText: 'Nie wybrano roli.',
-        roleTextTeacher: 'Nauczyciel – Dzielenie się wiedzą',
-        roleTextStudent: 'Uczeń – Zdobywanie wiedzy',
-        teacherLabel: 'Kompetencja',
-        studentLabel: 'Wiedza',
-        rank: 'Ranga',
-        basicsTitle: 'Podstawowa Wiedza',
-        materialsTitle: 'Materiały Dydaktyczne',
-        examsTitle: 'Egzaminy',
-        projectsTitle: 'Projekty',
-        digitalTitle: 'Narzędzia Cyfrowe',
-        basic1: 'Nauka Czytania (+1/klik)',
-        basic2: 'Ćwiczenie Pisania (+2/klik)',
-        basic3: 'Ćwiczenie Matematyki (+3/klik)',
-        basic4: 'Nauka Słownictwa (+5/klik)',
-        basic5: 'Zrozumienie Gramatyki (+7/klik)',
-        basic6: 'Nauka Formuł (+10/klik)',
-        basic7: 'Rozpoznawanie Połączeń (+14/klik)',
-        basic8: 'Zrozumienie Koncepcji (+20/klik)',
-        basic9: 'Łączenie Wiedzy (+28/klik)',
-        basic10: 'Mistrzostwo (+40/klik)',
-        mat1: 'Karty Pracy (+1/sek)',
-        mat2: 'Podręczniki (+2/sek)',
-        mat3: 'Zeszyty Ćwiczeń (+4/sek)',
-        mat4: 'Fiszki (+7/sek)',
-        mat5: 'Encyklopedia (+11/sek)',
-        mat6: 'Literatura Specjalistyczna (+17/sek)',
-        mat7: 'Biblioteka (+25/sek)',
-        mat8: 'Kolekcja (+36/sek)',
-        mat9: 'Archiwum (+50/sek)',
-        mat10: 'Biblioteka Uniwersalna (+70/sek)',
-        mat11: 'Centrum Wiedzy (+100/sek)',
-        mat12: 'Omnibiblioteka (+140/sek)',
-        exam1: 'Testy (+2/klik, +10/sek)',
-        exam2: 'Sprawdziany (+4/klik, +20/sek)',
-        exam3: 'Egzaminy Pisemne (+7/klik, +35/sek)',
-        exam4: 'Egzaminacje (+11/klik, +55/sek)',
-        exam5: 'Egzamin Państwowy (+17/klik, +85/sek)',
-        exam6: 'Egzamin Mistrzowski (+25/klik, +125/sek)',
-        exam7: 'Egzamin Doktorski (+36/klik, +180/sek)',
-        exam8: 'Egzamin Profesorski (+50/klik, +250/sek)',
-        exam9: 'Test Akademicki (+70/klik, +350/sek)',
-        exam10: 'Egzamin Uniwersalny (+100/klik, +500/sek)',
-        proj1: 'Referat (+30/klik, +150/sek)',
-        proj2: 'Prezentacja (+50/klik, +250/sek)',
-        proj3: 'Praca Grupowa (+80/klik, +400/sek)',
-        proj4: 'Praca Semestralna (+120/klik, +600/sek)',
-        proj5: 'Badania (+180/klik, +900/sek)',
-        proj6: 'Praca Dyplomowa (+260/klik, +1300/sek)',
-        proj7: 'Dysertacja (+370/klik, +1850/sek)',
-        proj8: 'Habilitacja (+520/klik, +2600/sek)',
-        proj9: 'Podręcznik (+720/klik, +3600/sek)',
-        proj10: 'Dzieło Życia (+1000/klik, +5000/sek)',
-        dig1: 'Kalkulator (+400/klik, +2000/sek)',
-        dig2: 'Komputer (+700/klik, +3500/sek)',
-        dig3: 'Aplikacje Edukacyjne (+1100/klik, +5500/sek)',
-        dig4: 'Kursy Online (+1700/klik, +8500/sek)',
-        dig5: 'Nauka VR (+2500/klik, +12500/sek)',
-        dig6: 'Tutor AI (+3700/klik, +18500/sek)',
-        dig7: 'Komputer Kwantowy (+5300/klik, +26500/sek)',
-        dig8: 'Nano Chip Edukacyjny (+7500/klik, +37500/sek)',
-        dig9: 'Holodeck (+10500/klik, +52500/sek)',
-        dig10: 'Interfejs Matrix (+14500/klik, +72500/sek)',
-        dig11: 'Upload Umysłu (+20000/klik, +100000/sek)',
-        dig12: 'Wszechwiedzа (+28000/klik, +140000/sek)',
-        saveBtn: '💾 Zapisz',
-        loadBtn: '📂 Wczytaj',
-        exportBtn: '📋 Eksportuj Kod',
-        importBtn: '📥 Importuj Kod',
-        gameSaved: 'Gra zapisana!',
-        gameLoaded: 'Gra wczytana!',
-        noSaveFound: 'Nie znaleziono zapisu!',
-        codeExported: 'Kod skopiowany!',
-        codeImported: 'Kod zaimportowany!',
-        invalidCode: 'Nieprawidłowy kod!',
-        diffEasy: 'Łatwy',
-        diffMedium: 'Średni',
-        diffHard: 'Trudny',
-        rankNobelPreis: 'Nagroda Nobla', rankAkademieleiter: 'Dyrektor Akademii', rankDekan: 'Dziekan', rankProfessor: 'Profesor', rankDozent: 'Docent', rankPrivatdozent: 'Docent Prywatny', rankOberlehrer: 'Starszy Nauczyciel', rankStudiendirektor: 'Dyrektor Studiów', rankFachleiter: 'Kierownik Działu', rankErfahrenerLehrer: 'Doświadczony Nauczyciel', rankJunglehrer: 'Młody Nauczyciel', rankReferendar: 'Stażysta', rankPraktikant: 'Praktykant', rankUniversalgenie: 'Geniusz Uniwersalny', rankPhilosoph: 'Filozof', rankKoryphae: 'Autorytet', rankGelehrter: 'Uczony', rankDoktor: 'Doktor', rankMagister: 'Magister', rankBachelor: 'Licencjat', rankStudent: 'Student', rankAbiturient: 'Maturzysta', rankMusterschueler: 'Wzorowy Uczeń', rankKlassenbester: 'Prymus Klasy', rankFleissigerSchueler: 'Pilny Uczeń', rankErstklaessler: 'Pierwszoklasista', rankAnfaenger: 'Początkujący'
-      },
-      ru: {
-        title: 'Образовательный Кликер',
-        flavour: 'Игровое Обучение и Преподавание',
-        namePlaceholder: 'Ваше имя...',
-        clickBtn: 'Учись!',
-        clickBtnTeacher: 'Преподавай!',
-        clickBtnStudent: 'Учись усердно!',
-        resetBtn: 'Сброс',
-        prestigePoints: 'Очки Престижа',
-        prestigeShopTitle: 'Магазин Престижа',
-        pClickMulti: 'Множитель Клика x2',
-        pAutoMulti: 'Авто Множитель x2',
-        pStartBonus: 'Начальное Значение +1000',
-        pDiscount: 'Снижение Стоимости',
-        cost: 'Стоимость',
-        buy: 'Купить',
-        roleTitle: 'Выбрать Роль',
-        chooseTeacher: 'Я Учитель',
-        chooseStudent: 'Я Ученик',
-        roleText: 'Роль не выбрана.',
-        roleTextTeacher: 'Учитель – Делиться знаниями',
-        roleTextStudent: 'Ученик – Приобретать знания',
-        teacherLabel: 'Компетентность',
-        studentLabel: 'Знания',
-        rank: 'Ранг',
-        basicsTitle: 'Базовые Знания',
-        materialsTitle: 'Учебные Материалы',
-        examsTitle: 'Экзамены',
-        projectsTitle: 'Проекты',
-        digitalTitle: 'Цифровые Инструменты',
-        basic1: 'Научиться Читать (+1/клик)',
-        basic2: 'Практика Письма (+2/клик)',
-        basic3: 'Практика Математики (+3/клик)',
-        basic4: 'Изучение Словаря (+5/клик)',
-        basic5: 'Понимание Грамматики (+7/клик)',
-        basic6: 'Изучение Формул (+10/клик)',
-        basic7: 'Распознавание Связей (+14/клик)',
-        basic8: 'Понимание Концепций (+20/клик)',
-        basic9: 'Связывание Знаний (+28/клик)',
-        basic10: 'Мастерство (+40/клик)',
-        mat1: 'Рабочие Листы (+1/сек)',
-        mat2: 'Учебники (+2/сек)',
-        mat3: 'Рабочие Тетради (+4/сек)',
-        mat4: 'Карточки (+7/сек)',
-        mat5: 'Энциклопедия (+11/сек)',
-        mat6: 'Специальная Литература (+17/сек)',
-        mat7: 'Библиотека (+25/сек)',
-        mat8: 'Коллекция (+36/сек)',
-        mat9: 'Архив (+50/сек)',
-        mat10: 'Универсальная Библиотека (+70/сек)',
-        mat11: 'Центр Знаний (+100/сек)',
-        mat12: 'Омнибиблиотека (+140/сек)',
-        exam1: 'Тесты (+2/клик, +10/сек)',
-        exam2: 'Контрольные Работы (+4/клик, +20/сек)',
-        exam3: 'Письменные Экзамены (+7/клик, +35/сек)',
-        exam4: 'Экзаменации (+11/клик, +55/сек)',
-        exam5: 'Государственный Экзамен (+17/клик, +85/сек)',
-        exam6: 'Мастерский Экзамен (+25/клик, +125/сек)',
-        exam7: 'Докторский Экзамен (+36/клик, +180/сек)',
-        exam8: 'Профессорский Экзамен (+50/клик, +250/сек)',
-        exam9: 'Академический Тест (+70/клик, +350/сек)',
-        exam10: 'Универсальный Экзамен (+100/клик, +500/сек)',
-        proj1: 'Доклад (+30/клик, +150/сек)',
-        proj2: 'Презентация (+50/клик, +250/сек)',
-        proj3: 'Групповая Работа (+80/клик, +400/сек)',
-        proj4: 'Курсовая Работа (+120/клик, +600/сек)',
-        proj5: 'Исследование (+180/клик, +900/сек)',
-        proj6: 'Диплом (+260/клик, +1300/сек)',
-        proj7: 'Диссертация (+370/клик, +1850/сек)',
-        proj8: 'Габилитация (+520/клик, +2600/сек)',
-        proj9: 'Учебник (+720/клик, +3600/сек)',
-        proj10: 'Труд Жизни (+1000/клик, +5000/сек)',
-        dig1: 'Калькулятор (+400/клик, +2000/сек)',
-        dig2: 'Компьютер (+700/клик, +3500/сек)',
-        dig3: 'Обучающие Приложения (+1100/клик, +5500/сек)',
-        dig4: 'Онлайн Курсы (+1700/клик, +8500/сек)',
-        dig5: 'VR Обучение (+2500/клик, +12500/сек)',
-        dig6: 'ИИ Репетитор (+3700/клик, +18500/сек)',
-        dig7: 'Квантовый Компьютер (+5300/клик, +26500/сек)',
-        dig8: 'Нано Обучающий Чип (+7500/клик, +37500/сек)',
-        dig9: 'Голодек (+10500/клик, +52500/сек)',
-        dig10: 'Интерфейс Матрицы (+14500/клик, +72500/сек)',
-        dig11: 'Загрузка Разума (+20000/клик, +100000/сек)',
-        dig12: 'Всезнание (+28000/клик, +140000/сек)',
-        saveBtn: '💾 Сохранить',
-        loadBtn: '📂 Загрузить',
-        exportBtn: '📋 Экспортировать Код',
-        importBtn: '📥 Импортировать Код',
-        gameSaved: 'Игра сохранена!',
-        gameLoaded: 'Игра загружена!',
-        noSaveFound: 'Сохранение не найдено!',
-        codeExported: 'Код скопирован!',
-        codeImported: 'Код импортирован!',
-        invalidCode: 'Неверный код!',
-        diffEasy: 'Легко',
-        diffMedium: 'Средне',
-        diffHard: 'Сложно',
-        rankNobelPreis: 'Нобелевская Премия', rankAkademieleiter: 'Директор Академии', rankDekan: 'Декан', rankProfessor: 'Профессор', rankDozent: 'Доцент', rankPrivatdozent: 'Приват-Доцент', rankOberlehrer: 'Старший Преподаватель', rankStudiendirektor: 'Директор по Учебе', rankFachleiter: 'Руководитель Отдела', rankErfahrenerLehrer: 'Опытный Учитель', rankJunglehrer: 'Молодой Учитель', rankReferendar: 'Стажер', rankPraktikant: 'Практикант', rankUniversalgenie: 'Универсальный Гений', rankPhilosoph: 'Философ', rankKoryphae: 'Авторитет', rankGelehrter: 'Ученый', rankDoktor: 'Доктор', rankMagister: 'Магистр', rankBachelor: 'Бакалавр', rankStudent: 'Студент', rankAbiturient: 'Выпускник', rankMusterschueler: 'Образцовый Ученик', rankKlassenbester: 'Лучший в Классе', rankFleissigerSchueler: 'Прилежный Ученик', rankErstklaessler: 'Первоклассник', rankAnfaenger: 'Начинающий'
-      },
-      ja: {
-        title: '教育クリッカー',
-        flavour: '遊びながら学び教える',
-        namePlaceholder: 'あなたの名前...',
-        clickBtn: '学ぼう！',
-        clickBtnTeacher: '教えよう！',
-        clickBtnStudent: '一生懸命勉強しよう！',
-        resetBtn: 'リセット',
-        prestigePoints: 'プレステージポイント',
-        prestigeShopTitle: 'プレステージショップ',
-        pClickMulti: 'クリック倍率 x2',
-        pAutoMulti: '自動倍率 x2',
-        pStartBonus: '開始値 +1000',
-        pDiscount: 'コスト削減',
-        cost: 'コスト',
-        buy: '購入',
-        roleTitle: '役割を選ぶ',
-        chooseTeacher: '私は教師です',
-        chooseStudent: '私は生徒です',
-        roleText: '役割が選択されていません。',
-        roleTextTeacher: '教師 – 知識を共有する',
-        roleTextStudent: '生徒 – 知識を獲得する',
-        teacherLabel: '能力',
-        studentLabel: '知識',
-        rank: 'ランク',
-        basicsTitle: '基礎知識',
-        materialsTitle: '教材',
-        examsTitle: '試験',
-        projectsTitle: 'プロジェクト',
-        digitalTitle: 'デジタルツール',
-        basic1: '読むことを学ぶ (+1/クリック)',
-        basic2: '書く練習 (+2/クリック)',
-        basic3: '計算の練習 (+3/クリック)',
-        basic4: '語彙を学ぶ (+5/クリック)',
-        basic5: '文法を理解する (+7/クリック)',
-        basic6: '公式を学ぶ (+10/クリック)',
-        basic7: 'つながりを認識する (+14/クリック)',
-        basic8: '概念を理解する (+20/クリック)',
-        basic9: '知識をつなげる (+28/クリック)',
-        basic10: '熟練 (+40/クリック)',
-        mat1: 'ワークシート (+1/秒)',
-        mat2: '教科書 (+2/秒)',
-        mat3: '練習帳 (+4/秒)',
-        mat4: 'フラッシュカード (+7/秒)',
-        mat5: '百科事典 (+11/秒)',
-        mat6: '専門文献 (+17/秒)',
-        mat7: '図書館 (+25/秒)',
-        mat8: 'コレクション (+36/秒)',
-        mat9: 'アーカイブ (+50/秒)',
-        mat10: '総合図書館 (+70/秒)',
-        mat11: '知識センター (+100/秒)',
-        mat12: 'オムニ図書館 (+140/秒)',
-        exam1: 'テスト (+2/クリック, +10/秒)',
-        exam2: 'クラステスト (+4/クリック, +20/秒)',
-        exam3: '筆記試験 (+7/クリック, +35/秒)',
-        exam4: '試験 (+11/クリック, +55/秒)',
-        exam5: '国家試験 (+17/クリック, +85/秒)',
-        exam6: 'マスター試験 (+25/クリック, +125/秒)',
-        exam7: '博士試験 (+36/クリック, +180/秒)',
-        exam8: '教授試験 (+50/クリック, +250/秒)',
-        exam9: '学術テスト (+70/クリック, +350/秒)',
-        exam10: '総合試験 (+100/クリック, +500/秒)',
-        proj1: 'レポート (+30/クリック, +150/秒)',
-        proj2: 'プレゼンテーション (+50/クリック, +250/秒)',
-        proj3: 'グループワーク (+80/クリック, +400/秒)',
-        proj4: '学期論文 (+120/クリック, +600/秒)',
-        proj5: '研究 (+180/クリック, +900/秒)',
-        proj6: '論文 (+260/クリック, +1300/秒)',
-        proj7: '学位論文 (+370/クリック, +1850/秒)',
-        proj8: '教授資格 (+520/クリック, +2600/秒)',
-        proj9: '教科書 (+720/クリック, +3600/秒)',
-        proj10: 'ライフワーク (+1000/クリック, +5000/秒)',
-        dig1: '電卓 (+400/クリック, +2000/秒)',
-        dig2: 'コンピューター (+700/クリック, +3500/秒)',
-        dig3: '学習アプリ (+1100/クリック, +5500/秒)',
-        dig4: 'オンラインコース (+1700/クリック, +8500/秒)',
-        dig5: 'VR学習 (+2500/クリック, +12500/秒)',
-        dig6: 'AIチューター (+3700/クリック, +18500/秒)',
-        dig7: '量子コンピューター (+5300/クリック, +26500/秒)',
-        dig8: 'ナノ学習チップ (+7500/クリック, +37500/秒)',
-        dig9: 'ホロデッキ (+10500/クリック, +52500/秒)',
-        dig10: 'マトリックスインターフェース (+14500/クリック, +72500/秒)',
-        dig11: '思考アップロード (+20000/クリック, +100000/秒)',
-        dig12: '全知 (+28000/クリック, +140000/秒)',
-        saveBtn: '💾 保存',
-        loadBtn: '📂 読込',
-        exportBtn: '📋 コードをエクスポート',
-        importBtn: '📥 コードをインポート',
-        gameSaved: 'ゲームが保存されました！',
-        gameLoaded: 'ゲームが読み込まれました！',
-        noSaveFound: 'セーブデータが見つかりません！',
-        codeExported: 'コードがコピーされました！',
-        codeImported: 'コードがインポートされました！',
-        invalidCode: '無効なコード！',
-        diffEasy: '簡単',
-        diffMedium: '普通',
-        diffHard: '難しい',
-        rankNobelPreis: 'ノーベル賞', rankAkademieleiter: 'アカデミー長', rankDekan: '学部長', rankProfessor: '教授', rankDozent: '講師', rankPrivatdozent: '私講師', rankOberlehrer: '上級教師', rankStudiendirektor: '学習指導主任', rankFachleiter: '専門主任', rankErfahrenerLehrer: 'ベテラン教師', rankJunglehrer: '若手教師', rankReferendar: '研修生', rankPraktikant: '実習生', rankUniversalgenie: '万能の天才', rankPhilosoph: '哲学者', rankKoryphae: '権威', rankGelehrter: '学者', rankDoktor: '博士', rankMagister: '修士', rankBachelor: '学士', rankStudent: '学生', rankAbiturient: '卒業予定者', rankMusterschueler: '優等生', rankKlassenbester: 'クラス首席', rankFleissigerSchueler: '勤勉な生徒', rankErstklaessler: '一年生', rankAnfaenger: '初心者'
-      }
     };
 
     // Owned counters for all upgrades
@@ -1749,13 +947,20 @@
       // Update prestige shop texts
       const pClickSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(2) span');
       const pAutoSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(3) span');
-      const pStartSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(4) span');
+      const pPointsSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(4) span');
       const pDiscountSpan = document.querySelector('#prestigeShop .prestigeUpgrade:nth-child(5) span');
 
       if (pClickSpan) pClickSpan.innerHTML = `${t.pClickMulti} (${t.cost}: <span id="pClickCost">${pClickCost}</span>)`;
       if (pAutoSpan) pAutoSpan.innerHTML = `${t.pAutoMulti} (${t.cost}: <span id="pAutoCost">${pAutoCost}</span>)`;
-      if (pStartSpan) pStartSpan.innerHTML = `${t.pStartBonus} (${t.cost}: <span id="pStartCost">${pStartCost}</span>)`;
+      if (pPointsSpan) pPointsSpan.innerHTML = `${t.pPointsBonus} (${t.cost}: <span id="pPointsCost">${pPointsCost}</span>)`;
       if (pDiscountSpan) pDiscountSpan.innerHTML = `${t.pDiscount} (${t.cost}: <span id="pDiscountCost">${pDiscountCost}</span>)`;
+
+      // Update per click/second labels
+      document.getElementById('perClickLabel').textContent = t.perClickLabel;
+      document.getElementById('perSecLabel').textContent = t.perSecLabel;
+      document.getElementById('cheatInput').placeholder = t.cheatInput;
+      document.getElementById('cheatBtn').textContent = t.cheatBtn;
+      document.getElementById('buyAmountLabel').textContent = t.buyAmountLabel;
 
       // Update all upgrade texts
       const updateUpgradeText = (id, upgradeData) => {
@@ -1800,9 +1005,10 @@
       // Update difficulty select options
       const diffSelect = document.getElementById('difficultySelect');
       if (diffSelect) {
-        diffSelect.options[0].textContent = t.diffEasy || 'Leicht / Easy';
-        diffSelect.options[1].textContent = t.diffMedium || 'Mittel / Medium';
-        diffSelect.options[2].textContent = t.diffHard || 'Schwer / Hard';
+        diffSelect.options[0].textContent = t.diffBaby || 'Baby';
+        diffSelect.options[1].textContent = t.diffEasy || 'Leicht / Easy';
+        diffSelect.options[2].textContent = t.diffMedium || 'Mittel / Medium';
+        diffSelect.options[3].textContent = t.diffHard || 'Schwer / Hard';
       }
 
       updateRank();
@@ -1817,6 +1023,13 @@
       counter.textContent = formatNumber(Math.floor(count));
       const t = translations[lang];
       prestigeCounter.textContent = t.prestigePoints + ': ' + prestigePoints;
+
+      // Update per click and per second displays
+      const totalPerClick = Math.floor(perClick * clickMultiplier);
+      const totalPerSec = Math.floor(autoClicks * autoMultiplier);
+      document.getElementById('perClickDisplay').textContent = formatNumber(totalPerClick);
+      document.getElementById('perSecDisplay').textContent = formatNumber(totalPerSec);
+
       updateButtonStates();
       checkUnlocks();
       updateResetButton();
@@ -1877,16 +1090,27 @@
         if (!upgraderEl) return;
         const btn = upgraderEl.querySelector('button');
         const discountFactor = Math.pow(0.95, discountLevel);
-        const actualCost = Math.floor(u.cost * discountFactor);
-        btn.disabled = count < actualCost;
+        const baseCost = Math.floor(u.cost * discountFactor);
+        const totalCost = calculateTotalCost(baseCost, buyAmount, u.mult);
+
+        btn.disabled = count < totalCost;
+
+        // Update button text to show cost for buyAmount
+        if (buyAmount > 1) {
+          btn.innerHTML = `${translations[lang].buy} x${buyAmount}<br><small>${formatNumber(totalCost)}</small>`;
+        } else {
+          btn.textContent = translations[lang].buy;
+        }
       });
     }
 
     function updateResetButton() {
       const resetThreshold = 10000000;
       resetBtn.disabled = count < resetThreshold;
-      const prestigeGain = Math.floor(count / 1000000);
-      resetBtn.textContent = `Reset (${formatNumber(resetThreshold)}) → +${prestigeGain} PP`;
+      // Dynamic prestige calculation: sqrt of points in millions
+      const prestigeGain = Math.floor(Math.sqrt(count / 1000000));
+      const t = translations[lang];
+      resetBtn.textContent = `${t.resetBtn} (${formatNumber(resetThreshold)}) → +${prestigeGain} PP`;
     }
 
     function checkAchievements() {
@@ -1965,13 +1189,13 @@
 
     resetBtn.onclick = () => {
       if (count >= 10000000) {
-        const prestigeGain = Math.floor(count / 1000000);
+        const prestigeGain = Math.floor(Math.sqrt(count / 1000000));
         if (confirm(`Reset bestätigen?\n\nDu erhältst ${prestigeGain} Prestige-Punkte und beginnst von vorne, behältst aber alle Prestige-Upgrades!`)) {
           prestigePoints += prestigeGain;
           totalResets++;
 
           // Reset game state
-          count = startBonus;
+          count = 0;
           perClick = 1;
           autoClicks = 0;
           teacher = 0;
@@ -2067,12 +1291,12 @@
       }
     };
 
-    document.getElementById('pStartBtn').onclick = () => {
-      if (prestigePoints >= pStartCost) {
-        prestigePoints -= pStartCost;
-        startBonus += 1000;
-        pStartCost = Math.ceil(pStartCost * 2.5);
-        document.getElementById('pStartCost').textContent = pStartCost;
+    document.getElementById('pPointsBtn').onclick = () => {
+      if (prestigePoints >= pPointsCost) {
+        prestigePoints -= pPointsCost;
+        prestigePoints += 1;  // Give back 1 prestige point as reward
+        pPointsCost = Math.ceil(pPointsCost * 2.5);
+        document.getElementById('pPointsCost').textContent = pPointsCost;
         update();
       }
     };
@@ -2092,23 +1316,31 @@
       const btn = upgraderEl.querySelector('button');
       btn.onclick = () => {
         const discountFactor = Math.pow(0.95, discountLevel);
-        const actualCost = Math.floor(upgrade.cost * discountFactor);
+        const baseCost = Math.floor(upgrade.cost * discountFactor);
 
-        if (count >= actualCost) {
-          count -= actualCost;
-          owned[upgrade.id]++;
+        // Calculate total cost for buyAmount purchases
+        const totalCost = calculateTotalCost(baseCost, buyAmount, upgrade.mult);
 
-          if (isClick) {
-            perClick += upgrade.incrementClick || upgrade.increment;
-          }
-          if (isAuto) {
-            autoClicks += upgrade.incrementAuto || upgrade.increment;
-          }
-          if (upgrade.incrementClick && upgrade.incrementAuto) {
-            hasExams = true;
+        if (count >= totalCost) {
+          count -= totalCost;
+
+          // Apply buyAmount times
+          for (let i = 0; i < buyAmount; i++) {
+            owned[upgrade.id]++;
+
+            if (isClick) {
+              perClick += upgrade.incrementClick || upgrade.increment;
+            }
+            if (isAuto) {
+              autoClicks += upgrade.incrementAuto || upgrade.increment;
+            }
+            if (upgrade.incrementClick && upgrade.incrementAuto) {
+              hasExams = true;
+            }
+
+            upgrade.cost = Math.floor(upgrade.cost * upgrade.mult);
           }
 
-          upgrade.cost = Math.floor(upgrade.cost * upgrade.mult);
           document.getElementById(upgrade.costEl).textContent = formatNumber(upgrade.cost);
           document.getElementById(upgrade.id + 'Level').textContent = `[${owned[upgrade.id]}]`;
           update();
@@ -2190,7 +1422,7 @@
     setInterval(() => {
       document.getElementById('pClickBtn').disabled = prestigePoints < pClickCost;
       document.getElementById('pAutoBtn').disabled = prestigePoints < pAutoCost;
-      document.getElementById('pStartBtn').disabled = prestigePoints < pStartCost;
+      document.getElementById('pPointsBtn').disabled = prestigePoints < pPointsCost;
       document.getElementById('pDiscountBtn').disabled = prestigePoints < pDiscountCost;
     }, 100);
 
@@ -2235,9 +1467,10 @@
         count, perClick, autoClicks, teacher, student, role, hasExams,
         playerName, achievementsShown, prestigePoints, totalResets,
         difficulty, difficultyMultiplier,
-        clickMultiplier, autoMultiplier, startBonus, discountLevel,
-        pClickCost, pAutoCost, pStartCost, pDiscountCost,
+        clickMultiplier, autoMultiplier, discountLevel,
+        pClickCost, pAutoCost, pPointsCost, pDiscountCost,
         lang, owned,
+        lastSaveTime: Date.now(),
         basicUpgrades: basicUpgrades.map(u => ({cost: u.cost})),
         materialUpgrades: materialUpgrades.map(u => ({cost: u.cost})),
         examUpgrades: examUpgrades.map(u => ({cost: u.cost})),
@@ -2277,13 +1510,41 @@
           difficultyMultiplier = gameState.difficultyMultiplier || 1;
           clickMultiplier = gameState.clickMultiplier || 1;
           autoMultiplier = gameState.autoMultiplier || 1;
-          startBonus = gameState.startBonus || 0;
           discountLevel = gameState.discountLevel || 0;
           pClickCost = gameState.pClickCost || 1;
           pAutoCost = gameState.pAutoCost || 1;
-          pStartCost = gameState.pStartCost || 2;
+          pPointsCost = gameState.pPointsCost || 2;
           pDiscountCost = gameState.pDiscountCost || 3;
           lang = gameState.lang || 'de';
+
+          // Calculate offline progress
+          if (gameState.lastSaveTime && autoClicks > 0) {
+            const timeAway = Date.now() - gameState.lastSaveTime;
+            const secondsAway = Math.floor(timeAway / 1000);
+            const minutesAway = Math.floor(secondsAway / 60);
+
+            if (secondsAway > 60) {
+              const offlineEarnings = Math.floor(secondsAway * autoClicks * autoMultiplier);
+              count += offlineEarnings;
+
+              // Format time string
+              const hours = Math.floor(secondsAway / 3600);
+              const minutes = Math.floor((secondsAway % 3600) / 60);
+              let timeStr = '';
+              if (hours > 0) timeStr += hours + ' h ';
+              if (minutes > 0) timeStr += minutes + ' min';
+              if (timeStr === '') timeStr = '< 1 min';
+
+              // Will show message after loading completes
+              setTimeout(() => {
+                const t = translations[lang];
+                const message = t.offlineProgress
+                  .replace('{time}', timeStr)
+                  .replace('{points}', formatNumber(offlineEarnings));
+                alert(message);
+              }, 100);
+            }
+          }
 
           if (gameState.owned) {
             for (let key in gameState.owned) {
@@ -2362,8 +1623,8 @@
         count, perClick, autoClicks, teacher, student, role, hasExams,
         playerName, achievementsShown, prestigePoints, totalResets,
         difficulty, difficultyMultiplier,
-        clickMultiplier, autoMultiplier, startBonus, discountLevel,
-        pClickCost, pAutoCost, pStartCost, pDiscountCost,
+        clickMultiplier, autoMultiplier, discountLevel,
+        pClickCost, pAutoCost, pPointsCost, pDiscountCost,
         lang, owned,
         basicUpgrades: basicUpgrades.map(u => ({cost: u.cost})),
         materialUpgrades: materialUpgrades.map(u => ({cost: u.cost})),
@@ -2406,11 +1667,10 @@
         difficultyMultiplier = gameState.difficultyMultiplier || 1;
         clickMultiplier = gameState.clickMultiplier || 1;
         autoMultiplier = gameState.autoMultiplier || 1;
-        startBonus = gameState.startBonus || 0;
         discountLevel = gameState.discountLevel || 0;
         pClickCost = gameState.pClickCost || 1;
         pAutoCost = gameState.pAutoCost || 1;
-        pStartCost = gameState.pStartCost || 2;
+        pPointsCost = gameState.pPointsCost || 2;
         pDiscountCost = gameState.pDiscountCost || 3;
         lang = gameState.lang || 'de';
 
@@ -2484,11 +1744,80 @@
       }
     }
 
+    // Buy Amount Selection
+    function updateBuyAmountButtons() {
+      document.getElementById('buy1').style.background = buyAmount === 1 ? '#4a90e2' : '#16213e';
+      document.getElementById('buy5').style.background = buyAmount === 5 ? '#4a90e2' : '#16213e';
+      document.getElementById('buy10').style.background = buyAmount === 10 ? '#4a90e2' : '#16213e';
+    }
+
+    document.getElementById('buy1').onclick = () => {
+      buyAmount = 1;
+      updateBuyAmountButtons();
+      updateButtonStates();
+    };
+
+    document.getElementById('buy5').onclick = () => {
+      buyAmount = 5;
+      updateBuyAmountButtons();
+      updateButtonStates();
+    };
+
+    document.getElementById('buy10').onclick = () => {
+      buyAmount = 10;
+      updateBuyAmountButtons();
+      updateButtonStates();
+    };
+
+    updateBuyAmountButtons();
+
+    // Helper function: Calculate total cost for multiple purchases with increasing costs
+    function calculateTotalCost(baseCost, amount, multiplier = 1.15) {
+      let total = 0;
+      let currentCost = baseCost;
+      for (let i = 0; i < amount; i++) {
+        total += currentCost;
+        currentCost = Math.ceil(currentCost * multiplier);
+      }
+      return total;
+    }
+
     // Button handlers
     document.getElementById('saveBtn').onclick = () => saveGame(true);
     document.getElementById('loadBtn').onclick = loadGame;
     document.getElementById('exportBtn').onclick = exportGame;
     document.getElementById('importBtn').onclick = importGame;
+
+    // Cheat code system
+    document.getElementById('cheatBtn').onclick = () => {
+      const code = document.getElementById('cheatInput').value.trim();
+      const t = translations[lang];
+      let points = 0;
+
+      if (code === 'HGN') {
+        points = 10000000;
+      } else if (code === 'Mathe') {
+        points = 10000000000;
+      } else if (code === 'HerrD') {
+        points = 10000000000000;
+      }
+
+      if (points > 0) {
+        count += points;
+        update();
+        alert(t.cheatSuccess + ' +' + formatNumber(points));
+        document.getElementById('cheatInput').value = '';
+      } else {
+        alert(t.cheatInvalid);
+      }
+    };
+
+    // Allow Enter key in cheat input
+    document.getElementById('cheatInput').onkeypress = (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('cheatBtn').click();
+      }
+    };
 
     // Auto-save every 30 seconds (silent)
     setInterval(() => saveGame(false), 30000);
