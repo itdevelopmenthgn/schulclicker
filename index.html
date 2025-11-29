@@ -69,6 +69,13 @@
       font-weight:bold;
       color:#4a90e2;
     }
+    #prestigeCounter {
+      font-size:1.2rem;
+      margin:10px;
+      text-align:center;
+      color:#ffaa00;
+      font-weight:bold;
+    }
     button {
       padding:12px 24px;
       font-size:1rem;
@@ -91,6 +98,20 @@
       background:#555;
       cursor:not-allowed;
     }
+    button.prestige {
+      background:#ffaa00;
+      color:#000;
+      font-weight:bold;
+      font-size:1.1rem;
+      padding:16px 32px;
+    }
+    button.prestige:active {
+      background:#dd8800;
+    }
+    button.prestige:disabled {
+      background:#555;
+      color:#888;
+    }
     #updaterRow {
       display:flex;
       gap:20px;
@@ -98,13 +119,13 @@
       flex-wrap:wrap;
       justify-content:center;
       width:100%;
-      max-width:1200px;
+      max-width:1400px;
     }
     .updaterBlock {
       display:flex;
       flex-direction:column;
       gap:10px;
-      min-width:200px;
+      min-width:250px;
       flex:1;
     }
     .updaterBlock.hidden {
@@ -127,6 +148,12 @@
       word-wrap:break-word;
       font-size:0.9rem;
       line-height:1.4;
+    }
+    .upgrader .level {
+      color:#ffaa00;
+      font-weight:bold;
+      font-size:0.85rem;
+      margin-right:8px;
     }
     .upgrader button {
       flex-shrink:0;
@@ -176,6 +203,31 @@
       display:none;
       box-shadow: 0 4px 8px rgba(0,0,0,0.3);
     }
+    #prestigeShop {
+      margin:20px 0;
+      padding:20px;
+      background:#2a2a3e;
+      border-radius:12px;
+      max-width:800px;
+      width:100%;
+    }
+    #prestigeShop.hidden {
+      display:none;
+    }
+    .prestigeUpgrade {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:#16213e;
+      padding:12px 15px;
+      margin:10px 0;
+      border-radius:12px;
+      gap:10px;
+    }
+    .prestigeUpgrade span {
+      flex:1;
+      color:#ffaa00;
+    }
 
     /* Tablet optimization */
     @media (max-width: 768px) {
@@ -184,7 +236,7 @@
       h2 { font-size:1.2rem; }
       h3 { font-size:1rem; }
       #counter { font-size:2rem; }
-      .updaterBlock { min-width:180px; }
+      .updaterBlock { min-width:200px; }
       #updaterRow { gap:15px; }
     }
 
@@ -221,16 +273,19 @@
         min-width:unset;
       }
       .upgrader {
-        flex-direction: row;
+        flex-direction: column;
         padding:10px 12px;
         gap:8px;
+        align-items:stretch;
       }
       .upgrader span {
         font-size:0.85rem;
+        text-align:center;
       }
       .upgrader button {
         padding:10px 16px;
         font-size:0.9rem;
+        width:100%;
       }
       #meters {
         width:100%;
@@ -259,18 +314,6 @@
       body { padding:8px 5px; }
       h1 { font-size:1.2rem; }
       #counter { font-size:1.8rem; }
-      .upgrader {
-        flex-direction:column;
-        align-items:stretch;
-      }
-      .upgrader button {
-        width:100%;
-        margin-top:6px;
-      }
-      .upgrader span {
-        max-width:100%;
-        text-align:center;
-      }
       #meters {
         flex-direction:column;
       }
@@ -283,15 +326,6 @@
 <body>
   <select id="langSelect">
     <option value="de">Deutsch</option>
-    <option value="en">English</option>
-    <option value="es">Español</option>
-    <option value="fr">Français</option>
-    <option value="it">Italiano</option>
-    <option value="pt">Português</option>
-    <option value="nl">Nederlands</option>
-    <option value="pl">Polski</option>
-    <option value="ru">Русский</option>
-    <option value="ja">日本語</option>
   </select>
 
   <h1 id="title">Bildungs-Clicker</h1>
@@ -300,9 +334,11 @@
   <input type="text" id="nameInput" placeholder="Dein Name..." maxlength="20">
 
   <div id="counter">0</div>
+  <div id="prestigeCounter">Prestige-Punkte: 0</div>
 
   <div id="clickRow">
     <button id="clickBtn">Lerne!</button>
+    <button id="resetBtn" class="prestige">Reset (10M)</button>
   </div>
 
   <h2 id="roleTitle">Rolle wählen</h2>
@@ -318,886 +354,103 @@
   <div id="rank">Rang: Anfänger</div>
   <div id="achievement"></div>
 
+  <div id="prestigeShop" class="hidden">
+    <h2>Prestige-Shop</h2>
+    <div class="prestigeUpgrade">
+      <span>Klick-Multiplikator x2 (Kosten: <span id="pClickCost">1</span>)</span>
+      <button id="pClickBtn">Kaufen</button>
+    </div>
+    <div class="prestigeUpgrade">
+      <span>Auto-Multiplikator x2 (Kosten: <span id="pAutoCost">1</span>)</span>
+      <button id="pAutoBtn">Kaufen</button>
+    </div>
+    <div class="prestigeUpgrade">
+      <span>Startwert +1000 (Kosten: <span id="pStartCost">2</span>)</span>
+      <button id="pStartBtn">Kaufen</button>
+    </div>
+    <div class="prestigeUpgrade">
+      <span>Kosten-Reduktion (Kosten: <span id="pDiscountCost">3</span>)</span>
+      <button id="pDiscountBtn">Kaufen</button>
+    </div>
+  </div>
+
   <div id="updaterRow">
     <div class="updaterBlock" id="blockBasics">
       <h3 id="basicsTitle">Grundwissen</h3>
-      <div class="upgrader" id="basic1"><span id="basic1Text">Lesen lernen (+2/Klick) – <span id="basic1Cost">30</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="basic2"><span id="basic2Text">Schreiben üben (+3/Klick) – <span id="basic2Cost">60</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="basic3"><span id="basic3Text">Rechnen üben (+5/Klick) – <span id="basic3Cost">100</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="basic4"><span id="basic4Text">Vokabeln lernen (+8/Klick) – <span id="basic4Cost">150</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="basic5"><span id="basic5Text">Grammatik verstehen (+12/Klick) – <span id="basic5Cost">220</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="basic6"><span id="basic6Text">Formeln auswendig lernen (+18/Klick) – <span id="basic6Cost">320</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="basic7"><span id="basic7Text">Zusammenhänge erkennen (+25/Klick) – <span id="basic7Cost">450</span></span><button>Kaufen</button></div>
+      <div class="upgrader" id="basic1"><span><span class="level" id="basic1Level">[0]</span><span id="basic1Text">Lesen lernen (+1/Klick) – <span id="basic1Cost">50</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic2"><span><span class="level" id="basic2Level">[0]</span><span id="basic2Text">Schreiben üben (+2/Klick) – <span id="basic2Cost">200</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic3"><span><span class="level" id="basic3Level">[0]</span><span id="basic3Text">Rechnen üben (+3/Klick) – <span id="basic3Cost">500</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic4"><span><span class="level" id="basic4Level">[0]</span><span id="basic4Text">Vokabeln lernen (+5/Klick) – <span id="basic4Cost">1000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic5"><span><span class="level" id="basic5Level">[0]</span><span id="basic5Text">Grammatik verstehen (+7/Klick) – <span id="basic5Cost">2000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic6"><span><span class="level" id="basic6Level">[0]</span><span id="basic6Text">Formeln lernen (+10/Klick) – <span id="basic6Cost">4000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic7"><span><span class="level" id="basic7Level">[0]</span><span id="basic7Text">Zusammenhänge erkennen (+14/Klick) – <span id="basic7Cost">8000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic8"><span><span class="level" id="basic8Level">[0]</span><span id="basic8Text">Konzepte verstehen (+20/Klick) – <span id="basic8Cost">15000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic9"><span><span class="level" id="basic9Level">[0]</span><span id="basic9Text">Wissen vernetzen (+28/Klick) – <span id="basic9Cost">30000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="basic10"><span><span class="level" id="basic10Level">[0]</span><span id="basic10Text">Meisterschaft (+40/Klick) – <span id="basic10Cost">60000</span></span></span><button>Kaufen</button></div>
     </div>
 
     <div class="updaterBlock hidden" id="blockMaterials">
       <h3 id="materialsTitle">Lehrmittel</h3>
-      <div class="upgrader" id="mat1"><span id="mat1Text">Arbeitsblätter (+2/sec) – <span id="mat1Cost">250</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat2"><span id="mat2Text">Lehrbücher (+4/sec) – <span id="mat2Cost">400</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat3"><span id="mat3Text">Übungshefte (+7/sec) – <span id="mat3Cost">600</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat4"><span id="mat4Text">Lernkarten (+11/sec) – <span id="mat4Cost">900</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat5"><span id="mat5Text">Lexikon (+16/sec) – <span id="mat5Cost">1400</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat6"><span id="mat6Text">Fachliteratur (+23/sec) – <span id="mat6Cost">2100</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat7"><span id="mat7Text">Bibliothek (+32/sec) – <span id="mat7Cost">3200</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="mat8"><span id="mat8Text">Komplette Sammlung (+45/sec) – <span id="mat8Cost">4800</span></span><button>Kaufen</button></div>
+      <div class="upgrader" id="mat1"><span><span class="level" id="mat1Level">[0]</span><span id="mat1Text">Arbeitsblätter (+1/sec) – <span id="mat1Cost">500</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat2"><span><span class="level" id="mat2Level">[0]</span><span id="mat2Text">Lehrbücher (+2/sec) – <span id="mat2Cost">1000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat3"><span><span class="level" id="mat3Level">[0]</span><span id="mat3Text">Übungshefte (+4/sec) – <span id="mat3Cost">2500</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat4"><span><span class="level" id="mat4Level">[0]</span><span id="mat4Text">Lernkarten (+7/sec) – <span id="mat4Cost">5000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat5"><span><span class="level" id="mat5Level">[0]</span><span id="mat5Text">Lexikon (+11/sec) – <span id="mat5Cost">10000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat6"><span><span class="level" id="mat6Level">[0]</span><span id="mat6Text">Fachliteratur (+17/sec) – <span id="mat6Cost">20000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat7"><span><span class="level" id="mat7Level">[0]</span><span id="mat7Text">Bibliothek (+25/sec) – <span id="mat7Cost">40000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat8"><span><span class="level" id="mat8Level">[0]</span><span id="mat8Text">Sammlung (+36/sec) – <span id="mat8Cost">80000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat9"><span><span class="level" id="mat9Level">[0]</span><span id="mat9Text">Archiv (+50/sec) – <span id="mat9Cost">150000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat10"><span><span class="level" id="mat10Level">[0]</span><span id="mat10Text">Universalbibliothek (+70/sec) – <span id="mat10Cost">300000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat11"><span><span class="level" id="mat11Level">[0]</span><span id="mat11Text">Wissenszentrum (+100/sec) – <span id="mat11Cost">600000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="mat12"><span><span class="level" id="mat12Level">[0]</span><span id="mat12Text">Omnibibliothek (+140/sec) – <span id="mat12Cost">1200000</span></span></span><button>Kaufen</button></div>
     </div>
 
     <div class="updaterBlock hidden" id="blockExams">
       <h3 id="examsTitle">Prüfungen</h3>
-      <div class="upgrader" id="exam1"><span id="exam1Text">Kurze Tests (+3/Klick, +15/sec) – <span id="exam1Cost">5000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="exam2"><span id="exam2Text">Klassenarbeiten (+5/Klick, +28/sec) – <span id="exam2Cost">8000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="exam3"><span id="exam3Text">Klausuren (+8/Klick, +45/sec) – <span id="exam3Cost">12000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="exam4"><span id="exam4Text">Abschlussprüfungen (+12/Klick, +70/sec) – <span id="exam4Cost">18000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="exam5"><span id="exam5Text">Staatsexamen (+18/Klick, +105/sec) – <span id="exam5Cost">27000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="exam6"><span id="exam6Text">Meisterprüfung (+25/Klick, +150/sec) – <span id="exam6Cost">40000</span></span><button>Kaufen</button></div>
+      <div class="upgrader" id="exam1"><span><span class="level" id="exam1Level">[0]</span><span id="exam1Text">Tests (+2/Klick, +10/sec) – <span id="exam1Cost">15000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam2"><span><span class="level" id="exam2Level">[0]</span><span id="exam2Text">Klassenarbeiten (+4/Klick, +20/sec) – <span id="exam2Cost">30000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam3"><span><span class="level" id="exam3Level">[0]</span><span id="exam3Text">Klausuren (+7/Klick, +35/sec) – <span id="exam3Cost">60000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam4"><span><span class="level" id="exam4Level">[0]</span><span id="exam4Text">Prüfungen (+11/Klick, +55/sec) – <span id="exam4Cost">120000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam5"><span><span class="level" id="exam5Level">[0]</span><span id="exam5Text">Staatsexamen (+17/Klick, +85/sec) – <span id="exam5Cost">250000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam6"><span><span class="level" id="exam6Level">[0]</span><span id="exam6Text">Meisterprüfung (+25/Klick, +125/sec) – <span id="exam6Cost">500000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam7"><span><span class="level" id="exam7Level">[0]</span><span id="exam7Text">Doktorprüfung (+36/Klick, +180/sec) – <span id="exam7Cost">1000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam8"><span><span class="level" id="exam8Level">[0]</span><span id="exam8Text">Professorenprüfung (+50/Klick, +250/sec) – <span id="exam8Cost">2000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam9"><span><span class="level" id="exam9Level">[0]</span><span id="exam9Text">Akademiker-Test (+70/Klick, +350/sec) – <span id="exam9Cost">4000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="exam10"><span><span class="level" id="exam10Level">[0]</span><span id="exam10Text">Universalprüfung (+100/Klick, +500/sec) – <span id="exam10Cost">8000000</span></span></span><button>Kaufen</button></div>
     </div>
 
     <div class="updaterBlock hidden" id="blockProjects">
       <h3 id="projectsTitle">Projekte</h3>
-      <div class="upgrader" id="proj1"><span id="proj1Text">Referat (+40/Klick, +200/sec) – <span id="proj1Cost">15000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="proj2"><span id="proj2Text">Präsentation (+65/Klick, +350/sec) – <span id="proj2Cost">25000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="proj3"><span id="proj3Text">Gruppenarbeit (+100/Klick, +550/sec) – <span id="proj3Cost">40000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="proj4"><span id="proj4Text">Facharbeit (+150/Klick, +850/sec) – <span id="proj4Cost">65000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="proj5"><span id="proj5Text">Forschungsprojekt (+230/Klick, +1300/sec) – <span id="proj5Cost">100000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="proj6"><span id="proj6Text">Abschlussarbeit (+350/Klick, +2000/sec) – <span id="proj6Cost">150000</span></span><button>Kaufen</button></div>
+      <div class="upgrader" id="proj1"><span><span class="level" id="proj1Level">[0]</span><span id="proj1Text">Referat (+30/Klick, +150/sec) – <span id="proj1Cost">100000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj2"><span><span class="level" id="proj2Level">[0]</span><span id="proj2Text">Präsentation (+50/Klick, +250/sec) – <span id="proj2Cost">250000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj3"><span><span class="level" id="proj3Level">[0]</span><span id="proj3Text">Gruppenarbeit (+80/Klick, +400/sec) – <span id="proj3Cost">600000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj4"><span><span class="level" id="proj4Level">[0]</span><span id="proj4Text">Facharbeit (+120/Klick, +600/sec) – <span id="proj4Cost">1500000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj5"><span><span class="level" id="proj5Level">[0]</span><span id="proj5Text">Forschung (+180/Klick, +900/sec) – <span id="proj5Cost">3500000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj6"><span><span class="level" id="proj6Level">[0]</span><span id="proj6Text">Abschlussarbeit (+260/Klick, +1300/sec) – <span id="proj6Cost">7000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj7"><span><span class="level" id="proj7Level">[0]</span><span id="proj7Text">Dissertation (+370/Klick, +1850/sec) – <span id="proj7Cost">15000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj8"><span><span class="level" id="proj8Level">[0]</span><span id="proj8Text">Habilitierung (+520/Klick, +2600/sec) – <span id="proj8Cost">30000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj9"><span><span class="level" id="proj9Level">[0]</span><span id="proj9Text">Lehrbuch (+720/Klick, +3600/sec) – <span id="proj9Cost">60000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="proj10"><span><span class="level" id="proj10Level">[0]</span><span id="proj10Text">Lebenswerk (+1000/Klick, +5000/sec) – <span id="proj10Cost">120000000</span></span></span><button>Kaufen</button></div>
     </div>
 
     <div class="updaterBlock hidden" id="blockDigital">
       <h3 id="digitalTitle">Digitale Tools</h3>
-      <div class="upgrader" id="dig1"><span id="dig1Text">Taschenrechner (+500/Klick, +3000/sec) – <span id="dig1Cost">60000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="dig2"><span id="dig2Text">Computer (+800/Klick, +5000/sec) – <span id="dig2Cost">100000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="dig3"><span id="dig3Text">Lern-Apps (+1200/Klick, +8000/sec) – <span id="dig3Cost">160000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="dig4"><span id="dig4Text">Online-Kurse (+1800/Klick, +12000/sec) – <span id="dig4Cost">250000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="dig5"><span id="dig5Text">VR-Lernumgebung (+2700/Klick, +18000/sec) – <span id="dig5Cost">400000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="dig6"><span id="dig6Text">KI-Tutor (+4000/Klick, +27000/sec) – <span id="dig6Cost">650000</span></span><button>Kaufen</button></div>
-      <div class="upgrader hidden" id="dig7"><span id="dig7Text">Holodeck-Klassenzimmer (+6000/Klick, +40000/sec) – <span id="dig7Cost">1000000</span></span><button>Kaufen</button></div>
+      <div class="upgrader" id="dig1"><span><span class="level" id="dig1Level">[0]</span><span id="dig1Text">Taschenrechner (+400/Klick, +2000/sec) – <span id="dig1Cost">500000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig2"><span><span class="level" id="dig2Level">[0]</span><span id="dig2Text">Computer (+700/Klick, +3500/sec) – <span id="dig2Cost">1500000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig3"><span><span class="level" id="dig3Level">[0]</span><span id="dig3Text">Lern-Apps (+1100/Klick, +5500/sec) – <span id="dig3Cost">4000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig4"><span><span class="level" id="dig4Level">[0]</span><span id="dig4Text">Online-Kurse (+1700/Klick, +8500/sec) – <span id="dig4Cost">10000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig5"><span><span class="level" id="dig5Level">[0]</span><span id="dig5Text">VR-Lernumgebung (+2500/Klick, +12500/sec) – <span id="dig5Cost">25000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig6"><span><span class="level" id="dig6Level">[0]</span><span id="dig6Text">KI-Tutor (+3700/Klick, +18500/sec) – <span id="dig6Cost">60000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig7"><span><span class="level" id="dig7Level">[0]</span><span id="dig7Text">Quantencomputer (+5300/Klick, +26500/sec) – <span id="dig7Cost">150000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig8"><span><span class="level" id="dig8Level">[0]</span><span id="dig8Text">Nano-Lernchip (+7500/Klick, +37500/sec) – <span id="dig8Cost">350000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig9"><span><span class="level" id="dig9Level">[0]</span><span id="dig9Text">Holodeck (+10500/Klick, +52500/sec) – <span id="dig9Cost">800000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig10"><span><span class="level" id="dig10Level">[0]</span><span id="dig10Text">Matrix-Interface (+14500/Klick, +72500/sec) – <span id="dig10Cost">1800000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig11"><span><span class="level" id="dig11Level">[0]</span><span id="dig11Text">Gedankenupload (+20000/Klick, +100000/sec) – <span id="dig11Cost">4000000000</span></span></span><button>Kaufen</button></div>
+      <div class="upgrader hidden" id="dig12"><span><span class="level" id="dig12Level">[0]</span><span id="dig12Text">Omniszenz (+28000/Klick, +140000/sec) – <span id="dig12Cost">9000000000</span></span></span><button>Kaufen</button></div>
     </div>
   </div>
 
   <script>
-    const translations = {
-      de: {
-        title: 'Bildungs-Clicker',
-        flavour: 'Spielerisches Lernen und Lehren',
-        namePlaceholder: 'Dein Name...',
-        clickBtn: 'Lerne!',
-        clickBtnTeacher: 'Unterrichte!',
-        clickBtnStudent: 'Lerne fleißig!',
-        roleTitle: 'Rolle wählen',
-        chooseTeacher: 'Ich bin Lehrer/in',
-        chooseStudent: 'Ich bin Schüler/in',
-        roleText: 'Keine Rolle gewählt.',
-        roleTextTeacher: 'Lehrer/in – Wissen weitergeben',
-        roleTextStudent: 'Schüler/in – Wissenserwerb',
-        teacherLabel: 'Kompetenz',
-        studentLabel: 'Wissen',
-        rank: 'Rang',
-        rankUnknown: 'Anfänger',
-        rankTeacher1: 'Referendar',
-        rankTeacher2: 'Junglehrer',
-        rankTeacher3: 'Erfahrener Lehrer',
-        rankTeacher4: 'Fachleiter',
-        rankTeacher5: 'Studiendirektor',
-        rankTeacher6: 'Schulleiter',
-        rankTeacher7: 'Prüfungsexperte',
-        rankTeacher8: 'Bildungslegende',
-        rankStudent1: 'Erstklässler',
-        rankStudent2: 'Fleißiger Schüler',
-        rankStudent3: 'Klassenbester',
-        rankStudent4: 'Musterschüler',
-        rankStudent5: 'Abiturient',
-        rankStudent6: 'Student',
-        rankStudent7: 'Bachelor',
-        rankStudent8: 'Doktor',
-        basicsTitle: 'Grundwissen',
-        materialsTitle: 'Lehrmittel',
-        examsTitle: 'Prüfungen',
-        projectsTitle: 'Projekte',
-        digitalTitle: 'Digitale Tools',
-        buy: 'Kaufen',
-        achievement100: '{name}, du machst tolle Fortschritte!',
-        achievement500: '{name}, du entwickelst echte Lernfreude!',
-        achievement1000: 'Beeindruckend, {name}! Du bist auf dem richtigen Weg!',
-        achievement5000: '{name}, du bist ein echtes Lerntalent!',
-        achievement10000: 'Hervorragend, {name}! Dein Einsatz zahlt sich aus!',
-        achievement25000: '{name}, du bist ein Vorbild für alle!',
-        achievement50000: 'Fantastisch, {name}! Wenige erreichen dieses Niveau!',
-        achievement100000: '{name}, du hast Perfektion erreicht!',
-        basic1: 'Lesen lernen (+2/Klick)',
-        basic2: 'Schreiben üben (+3/Klick)',
-        basic3: 'Rechnen üben (+5/Klick)',
-        basic4: 'Vokabeln lernen (+8/Klick)',
-        basic5: 'Grammatik verstehen (+12/Klick)',
-        basic6: 'Formeln auswendig lernen (+18/Klick)',
-        basic7: 'Zusammenhänge erkennen (+25/Klick)',
-        mat1: 'Arbeitsblätter (+2/sec)',
-        mat2: 'Lehrbücher (+4/sec)',
-        mat3: 'Übungshefte (+7/sec)',
-        mat4: 'Lernkarten (+11/sec)',
-        mat5: 'Lexikon (+16/sec)',
-        mat6: 'Fachliteratur (+23/sec)',
-        mat7: 'Bibliothek (+32/sec)',
-        mat8: 'Komplette Sammlung (+45/sec)',
-        exam1: 'Kurze Tests (+3/Klick, +15/sec)',
-        exam2: 'Klassenarbeiten (+5/Klick, +28/sec)',
-        exam3: 'Klausuren (+8/Klick, +45/sec)',
-        exam4: 'Abschlussprüfungen (+12/Klick, +70/sec)',
-        exam5: 'Staatsexamen (+18/Klick, +105/sec)',
-        exam6: 'Meisterprüfung (+25/Klick, +150/sec)',
-        proj1: 'Referat (+40/Klick, +200/sec)',
-        proj2: 'Präsentation (+65/Klick, +350/sec)',
-        proj3: 'Gruppenarbeit (+100/Klick, +550/sec)',
-        proj4: 'Facharbeit (+150/Klick, +850/sec)',
-        proj5: 'Forschungsprojekt (+230/Klick, +1300/sec)',
-        proj6: 'Abschlussarbeit (+350/Klick, +2000/sec)',
-        dig1: 'Taschenrechner (+500/Klick, +3000/sec)',
-        dig2: 'Computer (+800/Klick, +5000/sec)',
-        dig3: 'Lern-Apps (+1200/Klick, +8000/sec)',
-        dig4: 'Online-Kurse (+1800/Klick, +12000/sec)',
-        dig5: 'VR-Lernumgebung (+2700/Klick, +18000/sec)',
-        dig6: 'KI-Tutor (+4000/Klick, +27000/sec)',
-        dig7: 'Holodeck-Klassenzimmer (+6000/Klick, +40000/sec)'
-      },
-      en: {
-        title: 'Education Clicker',
-        flavour: 'Playful Learning and Teaching',
-        namePlaceholder: 'Your name...',
-        clickBtn: 'Learn!',
-        clickBtnTeacher: 'Teach!',
-        clickBtnStudent: 'Study hard!',
-        roleTitle: 'Choose Role',
-        chooseTeacher: 'I am a Teacher',
-        chooseStudent: 'I am a Student',
-        roleText: 'No role selected.',
-        roleTextTeacher: 'Teacher – Share knowledge',
-        roleTextStudent: 'Student – Acquire knowledge',
-        teacherLabel: 'Competence',
-        studentLabel: 'Knowledge',
-        rank: 'Rank',
-        rankUnknown: 'Beginner',
-        rankTeacher1: 'Student Teacher',
-        rankTeacher2: 'Junior Teacher',
-        rankTeacher3: 'Experienced Teacher',
-        rankTeacher4: 'Department Head',
-        rankTeacher5: 'Senior Teacher',
-        rankTeacher6: 'Principal',
-        rankTeacher7: 'Exam Expert',
-        rankTeacher8: 'Education Legend',
-        rankStudent1: 'First Grader',
-        rankStudent2: 'Diligent Student',
-        rankStudent3: 'Top of Class',
-        rankStudent4: 'Model Student',
-        rankStudent5: 'Graduate',
-        rankStudent6: 'Undergraduate',
-        rankStudent7: 'Bachelor',
-        rankStudent8: 'Doctor',
-        basicsTitle: 'Basic Knowledge',
-        materialsTitle: 'Learning Materials',
-        examsTitle: 'Exams',
-        projectsTitle: 'Projects',
-        digitalTitle: 'Digital Tools',
-        buy: 'Buy',
-        achievement100: '{name}, you\'re making great progress!',
-        achievement500: '{name}, you\'re developing real joy in learning!',
-        achievement1000: 'Impressive, {name}! You\'re on the right path!',
-        achievement5000: '{name}, you\'re a true learning talent!',
-        achievement10000: 'Excellent, {name}! Your effort pays off!',
-        achievement25000: '{name}, you\'re a role model for everyone!',
-        achievement50000: 'Fantastic, {name}! Few reach this level!',
-        achievement100000: '{name}, you\'ve achieved perfection!',
-        basic1: 'Learn to Read (+2/click)',
-        basic2: 'Practice Writing (+3/click)',
-        basic3: 'Practice Math (+5/click)',
-        basic4: 'Learn Vocabulary (+8/click)',
-        basic5: 'Understand Grammar (+12/click)',
-        basic6: 'Memorize Formulas (+18/click)',
-        basic7: 'Recognize Connections (+25/click)',
-        mat1: 'Worksheets (+2/sec)',
-        mat2: 'Textbooks (+4/sec)',
-        mat3: 'Exercise Books (+7/sec)',
-        mat4: 'Flashcards (+11/sec)',
-        mat5: 'Encyclopedia (+16/sec)',
-        mat6: 'Specialist Literature (+23/sec)',
-        mat7: 'Library (+32/sec)',
-        mat8: 'Complete Collection (+45/sec)',
-        exam1: 'Short Tests (+3/click, +15/sec)',
-        exam2: 'Class Tests (+5/click, +28/sec)',
-        exam3: 'Exams (+8/click, +45/sec)',
-        exam4: 'Final Exams (+12/click, +70/sec)',
-        exam5: 'State Exam (+18/click, +105/sec)',
-        exam6: 'Master Exam (+25/click, +150/sec)',
-        proj1: 'Report (+40/click, +200/sec)',
-        proj2: 'Presentation (+65/click, +350/sec)',
-        proj3: 'Group Work (+100/click, +550/sec)',
-        proj4: 'Term Paper (+150/click, +850/sec)',
-        proj5: 'Research Project (+230/click, +1300/sec)',
-        proj6: 'Thesis (+350/click, +2000/sec)',
-        dig1: 'Calculator (+500/click, +3000/sec)',
-        dig2: 'Computer (+800/click, +5000/sec)',
-        dig3: 'Learning Apps (+1200/click, +8000/sec)',
-        dig4: 'Online Courses (+1800/click, +12000/sec)',
-        dig5: 'VR Learning Environment (+2700/click, +18000/sec)',
-        dig6: 'AI Tutor (+4000/click, +27000/sec)',
-        dig7: 'Holodeck Classroom (+6000/click, +40000/sec)'
-      },
-      es: {
-        title: 'Clicker Educativo',
-        flavour: 'Aprendizaje y Enseñanza Lúdica',
-        namePlaceholder: 'Tu nombre...',
-        clickBtn: '¡Aprende!',
-        clickBtnTeacher: '¡Enseña!',
-        clickBtnStudent: '¡Estudia mucho!',
-        roleTitle: 'Elegir Rol',
-        chooseTeacher: 'Soy Profesor/a',
-        chooseStudent: 'Soy Estudiante',
-        roleText: 'Ningún rol seleccionado.',
-        roleTextTeacher: 'Profesor/a – Compartir conocimiento',
-        roleTextStudent: 'Estudiante – Adquirir conocimiento',
-        teacherLabel: 'Competencia',
-        studentLabel: 'Conocimiento',
-        rank: 'Rango',
-        rankUnknown: 'Principiante',
-        rankTeacher1: 'Profesor en Prácticas',
-        rankTeacher2: 'Profesor Junior',
-        rankTeacher3: 'Profesor Experimentado',
-        rankTeacher4: 'Jefe de Departamento',
-        rankTeacher5: 'Profesor Senior',
-        rankTeacher6: 'Director',
-        rankTeacher7: 'Experto en Exámenes',
-        rankTeacher8: 'Leyenda Educativa',
-        rankStudent1: 'Alumno de Primero',
-        rankStudent2: 'Estudiante Diligente',
-        rankStudent3: 'Mejor de la Clase',
-        rankStudent4: 'Estudiante Modelo',
-        rankStudent5: 'Graduado',
-        rankStudent6: 'Universitario',
-        rankStudent7: 'Licenciado',
-        rankStudent8: 'Doctor',
-        basicsTitle: 'Conocimiento Básico',
-        materialsTitle: 'Material Didáctico',
-        examsTitle: 'Exámenes',
-        projectsTitle: 'Proyectos',
-        digitalTitle: 'Herramientas Digitales',
-        buy: 'Comprar',
-        achievement100: '¡{name}, estás progresando muy bien!',
-        achievement500: '¡{name}, estás desarrollando verdadero placer en aprender!',
-        achievement1000: '¡Impresionante, {name}! ¡Vas por buen camino!',
-        achievement5000: '¡{name}, eres un verdadero talento de aprendizaje!',
-        achievement10000: '¡Excelente, {name}! ¡Tu esfuerzo vale la pena!',
-        achievement25000: '¡{name}, eres un modelo a seguir para todos!',
-        achievement50000: '¡Fantástico, {name}! ¡Pocos alcanzan este nivel!',
-        achievement100000: '¡{name}, has alcanzado la perfección!',
-        basic1: 'Aprender a Leer (+2/clic)',
-        basic2: 'Practicar Escritura (+3/clic)',
-        basic3: 'Practicar Matemáticas (+5/clic)',
-        basic4: 'Aprender Vocabulario (+8/clic)',
-        basic5: 'Entender Gramática (+12/clic)',
-        basic6: 'Memorizar Fórmulas (+18/clic)',
-        basic7: 'Reconocer Conexiones (+25/clic)',
-        mat1: 'Hojas de Trabajo (+2/seg)',
-        mat2: 'Libros de Texto (+4/seg)',
-        mat3: 'Cuadernos de Ejercicios (+7/seg)',
-        mat4: 'Tarjetas de Aprendizaje (+11/seg)',
-        mat5: 'Enciclopedia (+16/seg)',
-        mat6: 'Literatura Especializada (+23/seg)',
-        mat7: 'Biblioteca (+32/seg)',
-        mat8: 'Colección Completa (+45/seg)',
-        exam1: 'Pruebas Cortas (+3/clic, +15/seg)',
-        exam2: 'Exámenes de Clase (+5/clic, +28/seg)',
-        exam3: 'Exámenes Finales (+8/clic, +45/seg)',
-        exam4: 'Exámenes de Graduación (+12/clic, +70/seg)',
-        exam5: 'Examen de Estado (+18/clic, +105/seg)',
-        exam6: 'Examen Maestro (+25/clic, +150/seg)',
-        proj1: 'Informe (+40/clic, +200/seg)',
-        proj2: 'Presentación (+65/clic, +350/seg)',
-        proj3: 'Trabajo en Grupo (+100/clic, +550/seg)',
-        proj4: 'Trabajo Académico (+150/clic, +850/seg)',
-        proj5: 'Proyecto de Investigación (+230/clic, +1300/seg)',
-        proj6: 'Tesis (+350/clic, +2000/seg)',
-        dig1: 'Calculadora (+500/clic, +3000/seg)',
-        dig2: 'Computadora (+800/clic, +5000/seg)',
-        dig3: 'Apps de Aprendizaje (+1200/clic, +8000/seg)',
-        dig4: 'Cursos en Línea (+1800/clic, +12000/seg)',
-        dig5: 'Entorno de Aprendizaje VR (+2700/clic, +18000/seg)',
-        dig6: 'Tutor IA (+4000/clic, +27000/seg)',
-        dig7: 'Aula Holodeck (+6000/clic, +40000/seg)'
-      },
-      fr: {
-        title: 'Clicker Éducatif',
-        flavour: 'Apprentissage et Enseignement Ludique',
-        namePlaceholder: 'Votre nom...',
-        clickBtn: 'Apprends!',
-        clickBtnTeacher: 'Enseigne!',
-        clickBtnStudent: 'Étudie avec ardeur!',
-        roleTitle: 'Choisir un Rôle',
-        chooseTeacher: 'Je suis Enseignant(e)',
-        chooseStudent: 'Je suis Élève',
-        roleText: 'Aucun rôle sélectionné.',
-        roleTextTeacher: 'Enseignant(e) – Partager les connaissances',
-        roleTextStudent: 'Élève – Acquérir des connaissances',
-        teacherLabel: 'Compétence',
-        studentLabel: 'Savoir',
-        rank: 'Rang',
-        rankUnknown: 'Débutant',
-        rankTeacher1: 'Stagiaire',
-        rankTeacher2: 'Jeune Enseignant',
-        rankTeacher3: 'Enseignant Expérimenté',
-        rankTeacher4: 'Chef de Département',
-        rankTeacher5: 'Enseignant Principal',
-        rankTeacher6: 'Directeur',
-        rankTeacher7: 'Expert en Examens',
-        rankTeacher8: 'Légende de l\'Éducation',
-        rankStudent1: 'Élève de CP',
-        rankStudent2: 'Élève Assidu',
-        rankStudent3: 'Premier de la Classe',
-        rankStudent4: 'Élève Modèle',
-        rankStudent5: 'Diplômé',
-        rankStudent6: 'Étudiant',
-        rankStudent7: 'Licence',
-        rankStudent8: 'Docteur',
-        basicsTitle: 'Connaissances de Base',
-        materialsTitle: 'Matériel Pédagogique',
-        examsTitle: 'Examens',
-        projectsTitle: 'Projets',
-        digitalTitle: 'Outils Numériques',
-        buy: 'Acheter',
-        achievement100: '{name}, vous progressez très bien!',
-        achievement500: '{name}, vous développez un vrai plaisir d\'apprendre!',
-        achievement1000: 'Impressionnant, {name}! Vous êtes sur la bonne voie!',
-        achievement5000: '{name}, vous êtes un vrai talent d\'apprentissage!',
-        achievement10000: 'Excellent, {name}! Vos efforts portent leurs fruits!',
-        achievement25000: '{name}, vous êtes un modèle pour tous!',
-        achievement50000: 'Fantastique, {name}! Peu atteignent ce niveau!',
-        achievement100000: '{name}, vous avez atteint la perfection!',
-        basic1: 'Apprendre à Lire (+2/clic)',
-        basic2: 'Pratiquer l\'Écriture (+3/clic)',
-        basic3: 'Pratiquer les Mathématiques (+5/clic)',
-        basic4: 'Apprendre du Vocabulaire (+8/clic)',
-        basic5: 'Comprendre la Grammaire (+12/clic)',
-        basic6: 'Mémoriser des Formules (+18/clic)',
-        basic7: 'Reconnaître les Connexions (+25/clic)',
-        mat1: 'Feuilles de Travail (+2/sec)',
-        mat2: 'Manuels (+4/sec)',
-        mat3: 'Cahiers d\'Exercices (+7/sec)',
-        mat4: 'Cartes de Révision (+11/sec)',
-        mat5: 'Encyclopédie (+16/sec)',
-        mat6: 'Littérature Spécialisée (+23/sec)',
-        mat7: 'Bibliothèque (+32/sec)',
-        mat8: 'Collection Complète (+45/sec)',
-        exam1: 'Tests Courts (+3/clic, +15/sec)',
-        exam2: 'Contrôles de Classe (+5/clic, +28/sec)',
-        exam3: 'Examens (+8/clic, +45/sec)',
-        exam4: 'Examens Finaux (+12/clic, +70/sec)',
-        exam5: 'Examen d\'État (+18/clic, +105/sec)',
-        exam6: 'Examen de Maître (+25/clic, +150/sec)',
-        proj1: 'Exposé (+40/clic, +200/sec)',
-        proj2: 'Présentation (+65/clic, +350/sec)',
-        proj3: 'Travail de Groupe (+100/clic, +550/sec)',
-        proj4: 'Mémoire (+150/clic, +850/sec)',
-        proj5: 'Projet de Recherche (+230/clic, +1300/sec)',
-        proj6: 'Thèse (+350/clic, +2000/sec)',
-        dig1: 'Calculatrice (+500/clic, +3000/sec)',
-        dig2: 'Ordinateur (+800/clic, +5000/sec)',
-        dig3: 'Applications d\'Apprentissage (+1200/clic, +8000/sec)',
-        dig4: 'Cours en Ligne (+1800/clic, +12000/sec)',
-        dig5: 'Environnement d\'Apprentissage VR (+2700/clic, +18000/sec)',
-        dig6: 'Tuteur IA (+4000/clic, +27000/sec)',
-        dig7: 'Salle de Classe Holodeck (+6000/clic, +40000/sec)'
-      },
-      it: {
-        title: 'Clicker Educativo',
-        flavour: 'Apprendimento e Insegnamento Ludico',
-        namePlaceholder: 'Il tuo nome...',
-        clickBtn: 'Impara!',
-        clickBtnTeacher: 'Insegna!',
-        clickBtnStudent: 'Studia con impegno!',
-        roleTitle: 'Scegli Ruolo',
-        chooseTeacher: 'Sono Insegnante',
-        chooseStudent: 'Sono Studente',
-        roleText: 'Nessun ruolo selezionato.',
-        roleTextTeacher: 'Insegnante – Condividere conoscenza',
-        roleTextStudent: 'Studente – Acquisire conoscenza',
-        teacherLabel: 'Competenza',
-        studentLabel: 'Sapere',
-        rank: 'Rango',
-        rankUnknown: 'Principiante',
-        rankTeacher1: 'Tirocinante',
-        rankTeacher2: 'Giovane Insegnante',
-        rankTeacher3: 'Insegnante Esperto',
-        rankTeacher4: 'Capo Dipartimento',
-        rankTeacher5: 'Insegnante Senior',
-        rankTeacher6: 'Preside',
-        rankTeacher7: 'Esperto di Esami',
-        rankTeacher8: 'Leggenda dell\'Educazione',
-        rankStudent1: 'Alunno di Prima',
-        rankStudent2: 'Studente Diligente',
-        rankStudent3: 'Primo della Classe',
-        rankStudent4: 'Studente Modello',
-        rankStudent5: 'Diplomato',
-        rankStudent6: 'Universitario',
-        rankStudent7: 'Laureato',
-        rankStudent8: 'Dottore',
-        basicsTitle: 'Conoscenze di Base',
-        materialsTitle: 'Materiale Didattico',
-        examsTitle: 'Esami',
-        projectsTitle: 'Progetti',
-        digitalTitle: 'Strumenti Digitali',
-        buy: 'Comprare',
-        achievement100: '{name}, stai progredendo molto bene!',
-        achievement500: '{name}, stai sviluppando vera gioia nell\'apprendere!',
-        achievement1000: 'Impressionante, {name}! Sei sulla strada giusta!',
-        achievement5000: '{name}, sei un vero talento dell\'apprendimento!',
-        achievement10000: 'Eccellente, {name}! Il tuo impegno ripaga!',
-        achievement25000: '{name}, sei un modello per tutti!',
-        achievement50000: 'Fantastico, {name}! Pochi raggiungono questo livello!',
-        achievement100000: '{name}, hai raggiunto la perfezione!',
-        basic1: 'Imparare a Leggere (+2/clic)',
-        basic2: 'Praticare Scrittura (+3/clic)',
-        basic3: 'Praticare Matematica (+5/clic)',
-        basic4: 'Imparare Vocaboli (+8/clic)',
-        basic5: 'Capire Grammatica (+12/clic)',
-        basic6: 'Memorizzare Formule (+18/clic)',
-        basic7: 'Riconoscere Connessioni (+25/clic)',
-        mat1: 'Fogli di Lavoro (+2/sec)',
-        mat2: 'Libri di Testo (+4/sec)',
-        mat3: 'Quaderni di Esercizi (+7/sec)',
-        mat4: 'Carte di Studio (+11/sec)',
-        mat5: 'Enciclopedia (+16/sec)',
-        mat6: 'Letteratura Specializzata (+23/sec)',
-        mat7: 'Biblioteca (+32/sec)',
-        mat8: 'Collezione Completa (+45/sec)',
-        exam1: 'Test Brevi (+3/clic, +15/sec)',
-        exam2: 'Verifiche di Classe (+5/clic, +28/sec)',
-        exam3: 'Esami (+8/clic, +45/sec)',
-        exam4: 'Esami Finali (+12/clic, +70/sec)',
-        exam5: 'Esame di Stato (+18/clic, +105/sec)',
-        exam6: 'Esame Maestro (+25/clic, +150/sec)',
-        proj1: 'Relazione (+40/clic, +200/sec)',
-        proj2: 'Presentazione (+65/clic, +350/sec)',
-        proj3: 'Lavoro di Gruppo (+100/clic, +550/sec)',
-        proj4: 'Tesina (+150/clic, +850/sec)',
-        proj5: 'Progetto di Ricerca (+230/clic, +1300/sec)',
-        proj6: 'Tesi (+350/clic, +2000/sec)',
-        dig1: 'Calcolatrice (+500/clic, +3000/sec)',
-        dig2: 'Computer (+800/clic, +5000/sec)',
-        dig3: 'App di Apprendimento (+1200/clic, +8000/sec)',
-        dig4: 'Corsi Online (+1800/clic, +12000/sec)',
-        dig5: 'Ambiente di Apprendimento VR (+2700/clic, +18000/sec)',
-        dig6: 'Tutor IA (+4000/clic, +27000/sec)',
-        dig7: 'Aula Holodeck (+6000/clic, +40000/sec)'
-      },
-      pt: {
-        title: 'Clicker Educacional',
-        flavour: 'Aprendizagem e Ensino Lúdico',
-        namePlaceholder: 'Seu nome...',
-        clickBtn: 'Aprenda!',
-        clickBtnTeacher: 'Ensine!',
-        clickBtnStudent: 'Estude muito!',
-        roleTitle: 'Escolher Papel',
-        chooseTeacher: 'Sou Professor/a',
-        chooseStudent: 'Sou Estudante',
-        roleText: 'Nenhum papel selecionado.',
-        roleTextTeacher: 'Professor/a – Compartilhar conhecimento',
-        roleTextStudent: 'Estudante – Adquirir conhecimento',
-        teacherLabel: 'Competência',
-        studentLabel: 'Saber',
-        rank: 'Classificação',
-        rankUnknown: 'Iniciante',
-        rankTeacher1: 'Estagiário',
-        rankTeacher2: 'Professor Júnior',
-        rankTeacher3: 'Professor Experiente',
-        rankTeacher4: 'Chefe de Departamento',
-        rankTeacher5: 'Professor Sênior',
-        rankTeacher6: 'Diretor',
-        rankTeacher7: 'Especialista em Exames',
-        rankTeacher8: 'Lenda da Educação',
-        rankStudent1: 'Aluno da Primeira Série',
-        rankStudent2: 'Estudante Diligente',
-        rankStudent3: 'Melhor da Turma',
-        rankStudent4: 'Estudante Modelo',
-        rankStudent5: 'Graduado',
-        rankStudent6: 'Universitário',
-        rankStudent7: 'Bacharel',
-        rankStudent8: 'Doutor',
-        basicsTitle: 'Conhecimento Básico',
-        materialsTitle: 'Material Didático',
-        examsTitle: 'Exames',
-        projectsTitle: 'Projetos',
-        digitalTitle: 'Ferramentas Digitais',
-        buy: 'Comprar',
-        achievement100: '{name}, você está progredindo muito bem!',
-        achievement500: '{name}, você está desenvolvendo verdadeira alegria em aprender!',
-        achievement1000: 'Impressionante, {name}! Você está no caminho certo!',
-        achievement5000: '{name}, você é um verdadeiro talento de aprendizagem!',
-        achievement10000: 'Excelente, {name}! Seu esforço compensa!',
-        achievement25000: '{name}, você é um modelo para todos!',
-        achievement50000: 'Fantástico, {name}! Poucos alcançam este nível!',
-        achievement100000: '{name}, você alcançou a perfeição!',
-        basic1: 'Aprender a Ler (+2/clique)',
-        basic2: 'Praticar Escrita (+3/clique)',
-        basic3: 'Praticar Matemática (+5/clique)',
-        basic4: 'Aprender Vocabulário (+8/clique)',
-        basic5: 'Entender Gramática (+12/clique)',
-        basic6: 'Memorizar Fórmulas (+18/clique)',
-        basic7: 'Reconhecer Conexões (+25/clique)',
-        mat1: 'Folhas de Trabalho (+2/seg)',
-        mat2: 'Livros Didáticos (+4/seg)',
-        mat3: 'Cadernos de Exercícios (+7/seg)',
-        mat4: 'Cartões de Estudo (+11/seg)',
-        mat5: 'Enciclopédia (+16/seg)',
-        mat6: 'Literatura Especializada (+23/seg)',
-        mat7: 'Biblioteca (+32/seg)',
-        mat8: 'Coleção Completa (+45/seg)',
-        exam1: 'Testes Curtos (+3/clique, +15/seg)',
-        exam2: 'Provas de Classe (+5/clique, +28/seg)',
-        exam3: 'Exames (+8/clique, +45/seg)',
-        exam4: 'Exames Finais (+12/clique, +70/seg)',
-        exam5: 'Exame de Estado (+18/clique, +105/seg)',
-        exam6: 'Exame Mestre (+25/clique, +150/seg)',
-        proj1: 'Relatório (+40/clique, +200/seg)',
-        proj2: 'Apresentação (+65/clique, +350/seg)',
-        proj3: 'Trabalho em Grupo (+100/clique, +550/seg)',
-        proj4: 'Trabalho Acadêmico (+150/clique, +850/seg)',
-        proj5: 'Projeto de Pesquisa (+230/clique, +1300/seg)',
-        proj6: 'Tese (+350/clique, +2000/seg)',
-        dig1: 'Calculadora (+500/clique, +3000/seg)',
-        dig2: 'Computador (+800/clique, +5000/seg)',
-        dig3: 'Apps de Aprendizagem (+1200/clique, +8000/seg)',
-        dig4: 'Cursos Online (+1800/clique, +12000/seg)',
-        dig5: 'Ambiente de Aprendizagem VR (+2700/clique, +18000/seg)',
-        dig6: 'Tutor IA (+4000/clique, +27000/seg)',
-        dig7: 'Sala de Aula Holodeck (+6000/clique, +40000/seg)'
-      },
-      nl: {
-        title: 'Onderwijs Clicker',
-        flavour: 'Speels Leren en Onderwijzen',
-        namePlaceholder: 'Jouw naam...',
-        clickBtn: 'Leer!',
-        clickBtnTeacher: 'Geef les!',
-        clickBtnStudent: 'Studeer hard!',
-        roleTitle: 'Kies Rol',
-        chooseTeacher: 'Ik ben Leraar',
-        chooseStudent: 'Ik ben Leerling',
-        roleText: 'Geen rol geselecteerd.',
-        roleTextTeacher: 'Leraar – Kennis delen',
-        roleTextStudent: 'Leerling – Kennis opdoen',
-        teacherLabel: 'Competentie',
-        studentLabel: 'Kennis',
-        rank: 'Rang',
-        rankUnknown: 'Beginner',
-        rankTeacher1: 'Stagiair',
-        rankTeacher2: 'Junior Leraar',
-        rankTeacher3: 'Ervaren Leraar',
-        rankTeacher4: 'Afdelingshoofd',
-        rankTeacher5: 'Senior Leraar',
-        rankTeacher6: 'Directeur',
-        rankTeacher7: 'Examen Expert',
-        rankTeacher8: 'Onderwijslegende',
-        rankStudent1: 'Eersteklasser',
-        rankStudent2: 'IJverige Leerling',
-        rankStudent3: 'Beste van de Klas',
-        rankStudent4: 'Modelleerling',
-        rankStudent5: 'Afgestudeerde',
-        rankStudent6: 'Student',
-        rankStudent7: 'Bachelor',
-        rankStudent8: 'Doctor',
-        basicsTitle: 'Basiskennis',
-        materialsTitle: 'Lesmateriaal',
-        examsTitle: 'Examens',
-        projectsTitle: 'Projecten',
-        digitalTitle: 'Digitale Tools',
-        buy: 'Kopen',
-        achievement100: '{name}, je maakt geweldige vooruitgang!',
-        achievement500: '{name}, je ontwikkelt echte leervreugde!',
-        achievement1000: 'Indrukwekkend, {name}! Je bent op de goede weg!',
-        achievement5000: '{name}, je bent een echt leertalent!',
-        achievement10000: 'Uitstekend, {name}! Je inspanning loont!',
-        achievement25000: '{name}, je bent een rolmodel voor iedereen!',
-        achievement50000: 'Fantastisch, {name}! Weinigen bereiken dit niveau!',
-        achievement100000: '{name}, je hebt perfectie bereikt!',
-        basic1: 'Leren Lezen (+2/klik)',
-        basic2: 'Schrijven Oefenen (+3/klik)',
-        basic3: 'Rekenen Oefenen (+5/klik)',
-        basic4: 'Woordenschat Leren (+8/klik)',
-        basic5: 'Grammatica Begrijpen (+12/klik)',
-        basic6: 'Formules Onthouden (+18/klik)',
-        basic7: 'Verbanden Herkennen (+25/klik)',
-        mat1: 'Werkbladen (+2/sec)',
-        mat2: 'Leerboeken (+4/sec)',
-        mat3: 'Oefenschriften (+7/sec)',
-        mat4: 'Leerkaarten (+11/sec)',
-        mat5: 'Encyclopedie (+16/sec)',
-        mat6: 'Vakliteratuur (+23/sec)',
-        mat7: 'Bibliotheek (+32/sec)',
-        mat8: 'Volledige Collectie (+45/sec)',
-        exam1: 'Korte Toetsen (+3/klik, +15/sec)',
-        exam2: 'Klastoetsen (+5/klik, +28/sec)',
-        exam3: 'Examens (+8/klik, +45/sec)',
-        exam4: 'Eindexamens (+12/klik, +70/sec)',
-        exam5: 'Staatsexamen (+18/klik, +105/sec)',
-        exam6: 'Meesterexamen (+25/klik, +150/sec)',
-        proj1: 'Referaat (+40/klik, +200/sec)',
-        proj2: 'Presentatie (+65/klik, +350/sec)',
-        proj3: 'Groepswerk (+100/klik, +550/sec)',
-        proj4: 'Proefwerk (+150/klik, +850/sec)',
-        proj5: 'Onderzoeksproject (+230/klik, +1300/sec)',
-        proj6: 'Scriptie (+350/klik, +2000/sec)',
-        dig1: 'Rekenmachine (+500/klik, +3000/sec)',
-        dig2: 'Computer (+800/klik, +5000/sec)',
-        dig3: 'Leer-Apps (+1200/klik, +8000/sec)',
-        dig4: 'Online Cursussen (+1800/klik, +12000/sec)',
-        dig5: 'VR Leeromgeving (+2700/klik, +18000/sec)',
-        dig6: 'AI Tutor (+4000/klik, +27000/sec)',
-        dig7: 'Holodeck Klaslokaal (+6000/klik, +40000/sec)'
-      },
-      pl: {
-        title: 'Clicker Edukacyjny',
-        flavour: 'Zabawna Nauka i Nauczanie',
-        namePlaceholder: 'Twoje imię...',
-        clickBtn: 'Ucz się!',
-        clickBtnTeacher: 'Naucz!',
-        clickBtnStudent: 'Studiuj ciężko!',
-        roleTitle: 'Wybierz Rolę',
-        chooseTeacher: 'Jestem Nauczycielem',
-        chooseStudent: 'Jestem Uczniem',
-        roleText: 'Nie wybrano roli.',
-        roleTextTeacher: 'Nauczyciel – Dzielenie się wiedzą',
-        roleTextStudent: 'Uczeń – Zdobywanie wiedzy',
-        teacherLabel: 'Kompetencja',
-        studentLabel: 'Wiedza',
-        rank: 'Ranga',
-        rankUnknown: 'Początkujący',
-        rankTeacher1: 'Stażysta',
-        rankTeacher2: 'Młody Nauczyciel',
-        rankTeacher3: 'Doświadczony Nauczyciel',
-        rankTeacher4: 'Kierownik Działu',
-        rankTeacher5: 'Starszy Nauczyciel',
-        rankTeacher6: 'Dyrektor',
-        rankTeacher7: 'Ekspert od Egzaminów',
-        rankTeacher8: 'Legenda Edukacji',
-        rankStudent1: 'Uczeń Klasy Pierwszej',
-        rankStudent2: 'Pilny Uczeń',
-        rankStudent3: 'Najlepszy w Klasie',
-        rankStudent4: 'Uczeń Wzorowy',
-        rankStudent5: 'Absolwent',
-        rankStudent6: 'Student',
-        rankStudent7: 'Licencjat',
-        rankStudent8: 'Doktor',
-        basicsTitle: 'Podstawowa Wiedza',
-        materialsTitle: 'Materiały Dydaktyczne',
-        examsTitle: 'Egzaminy',
-        projectsTitle: 'Projekty',
-        digitalTitle: 'Narzędzia Cyfrowe',
-        buy: 'Kup',
-        achievement100: '{name}, robisz świetne postępy!',
-        achievement500: '{name}, rozwijasz prawdziwą radość z nauki!',
-        achievement1000: 'Imponujące, {name}! Jesteś na właściwej drodze!',
-        achievement5000: '{name}, jesteś prawdziwym talentem nauki!',
-        achievement10000: 'Doskonale, {name}! Twój wysiłek się opłaca!',
-        achievement25000: '{name}, jesteś wzorem dla wszystkich!',
-        achievement50000: 'Fantastycznie, {name}! Niewielu osiąga ten poziom!',
-        achievement100000: '{name}, osiągnąłeś/aś perfekcję!',
-        basic1: 'Nauka Czytania (+2/kliknięcie)',
-        basic2: 'Ćwiczenie Pisania (+3/kliknięcie)',
-        basic3: 'Ćwiczenie Matematyki (+5/kliknięcie)',
-        basic4: 'Nauka Słówek (+8/kliknięcie)',
-        basic5: 'Rozumienie Gramatyki (+12/kliknięcie)',
-        basic6: 'Zapamiętywanie Wzorów (+18/kliknięcie)',
-        basic7: 'Rozpoznawanie Powiązań (+25/kliknięcie)',
-        mat1: 'Arkusze Pracy (+2/sek)',
-        mat2: 'Podręczniki (+4/sek)',
-        mat3: 'Zeszyty Ćwiczeń (+7/sek)',
-        mat4: 'Fiszki (+11/sek)',
-        mat5: 'Encyklopedia (+16/sek)',
-        mat6: 'Literatura Fachowa (+23/sek)',
-        mat7: 'Biblioteka (+32/sek)',
-        mat8: 'Kompletna Kolekcja (+45/sek)',
-        exam1: 'Krótkie Testy (+3/kliknięcie, +15/sek)',
-        exam2: 'Sprawdziany Klasowe (+5/kliknięcie, +28/sek)',
-        exam3: 'Egzaminy (+8/kliknięcie, +45/sek)',
-        exam4: 'Egzaminy Końcowe (+12/kliknięcie, +70/sek)',
-        exam5: 'Egzamin Państwowy (+18/kliknięcie, +105/sek)',
-        exam6: 'Egzamin Mistrzowski (+25/kliknięcie, +150/sek)',
-        proj1: 'Referat (+40/kliknięcie, +200/sek)',
-        proj2: 'Prezentacja (+65/kliknięcie, +350/sek)',
-        proj3: 'Praca Grupowa (+100/kliknięcie, +550/sek)',
-        proj4: 'Praca Naukowa (+150/kliknięcie, +850/sek)',
-        proj5: 'Projekt Badawczy (+230/kliknięcie, +1300/sek)',
-        proj6: 'Praca Dyplomowa (+350/kliknięcie, +2000/sek)',
-        dig1: 'Kalkulator (+500/kliknięcie, +3000/sek)',
-        dig2: 'Komputer (+800/kliknięcie, +5000/sek)',
-        dig3: 'Aplikacje do Nauki (+1200/kliknięcie, +8000/sek)',
-        dig4: 'Kursy Online (+1800/kliknięcie, +12000/sek)',
-        dig5: 'Środowisko Nauki VR (+2700/kliknięcie, +18000/sek)',
-        dig6: 'Korepetytor AI (+4000/kliknięcie, +27000/sek)',
-        dig7: 'Klasa Holodeck (+6000/kliknięcie, +40000/sek)'
-      },
-      ru: {
-        title: 'Образовательный Кликер',
-        flavour: 'Игровое Обучение и Преподавание',
-        namePlaceholder: 'Ваше имя...',
-        clickBtn: 'Учись!',
-        clickBtnTeacher: 'Преподавай!',
-        clickBtnStudent: 'Учись усердно!',
-        roleTitle: 'Выбрать Роль',
-        chooseTeacher: 'Я Учитель',
-        chooseStudent: 'Я Ученик',
-        roleText: 'Роль не выбрана.',
-        roleTextTeacher: 'Учитель – Делиться знаниями',
-        roleTextStudent: 'Ученик – Приобретать знания',
-        teacherLabel: 'Компетентность',
-        studentLabel: 'Знания',
-        rank: 'Ранг',
-        rankUnknown: 'Новичок',
-        rankTeacher1: 'Стажёр',
-        rankTeacher2: 'Молодой Учитель',
-        rankTeacher3: 'Опытный Учитель',
-        rankTeacher4: 'Заведующий Кафедрой',
-        rankTeacher5: 'Старший Учитель',
-        rankTeacher6: 'Директор',
-        rankTeacher7: 'Эксперт по Экзаменам',
-        rankTeacher8: 'Легенда Образования',
-        rankStudent1: 'Первоклассник',
-        rankStudent2: 'Прилежный Ученик',
-        rankStudent3: 'Лучший в Классе',
-        rankStudent4: 'Образцовый Ученик',
-        rankStudent5: 'Выпускник',
-        rankStudent6: 'Студент',
-        rankStudent7: 'Бакалавр',
-        rankStudent8: 'Доктор',
-        basicsTitle: 'Базовые Знания',
-        materialsTitle: 'Учебные Материалы',
-        examsTitle: 'Экзамены',
-        projectsTitle: 'Проекты',
-        digitalTitle: 'Цифровые Инструменты',
-        buy: 'Купить',
-        achievement100: '{name}, ты делаешь отличные успехи!',
-        achievement500: '{name}, ты развиваешь настоящую радость обучения!',
-        achievement1000: 'Впечатляюще, {name}! Ты на правильном пути!',
-        achievement5000: '{name}, ты настоящий талант обучения!',
-        achievement10000: 'Превосходно, {name}! Твои усилия окупаются!',
-        achievement25000: '{name}, ты образец для всех!',
-        achievement50000: 'Фантастически, {name}! Немногие достигают этого уровня!',
-        achievement100000: '{name}, ты достиг совершенства!',
-        basic1: 'Учиться Читать (+2/клик)',
-        basic2: 'Практиковать Письмо (+3/клик)',
-        basic3: 'Практиковать Математику (+5/клик)',
-        basic4: 'Учить Слова (+8/клик)',
-        basic5: 'Понимать Грамматику (+12/клик)',
-        basic6: 'Запоминать Формулы (+18/клик)',
-        basic7: 'Распознавать Связи (+25/клик)',
-        mat1: 'Рабочие Листы (+2/сек)',
-        mat2: 'Учебники (+4/сек)',
-        mat3: 'Тетради для Упражнений (+7/сек)',
-        mat4: 'Карточки для Обучения (+11/сек)',
-        mat5: 'Энциклопедия (+16/сек)',
-        mat6: 'Специализированная Литература (+23/сек)',
-        mat7: 'Библиотека (+32/сек)',
-        mat8: 'Полная Коллекция (+45/сек)',
-        exam1: 'Короткие Тесты (+3/клик, +15/сек)',
-        exam2: 'Классные Тесты (+5/клик, +28/сек)',
-        exam3: 'Экзамены (+8/клик, +45/сек)',
-        exam4: 'Выпускные Экзамены (+12/клик, +70/сек)',
-        exam5: 'Государственный Экзамен (+18/клик, +105/сек)',
-        exam6: 'Мастерский Экзамен (+25/клик, +150/сек)',
-        proj1: 'Доклад (+40/клик, +200/сек)',
-        proj2: 'Презентация (+65/клик, +350/сек)',
-        proj3: 'Групповая Работа (+100/клик, +550/сек)',
-        proj4: 'Курсовая Работа (+150/клик, +850/сек)',
-        proj5: 'Исследовательский Проект (+230/клик, +1300/сек)',
-        proj6: 'Дипломная Работа (+350/клик, +2000/сек)',
-        dig1: 'Калькулятор (+500/клик, +3000/сек)',
-        dig2: 'Компьютер (+800/клик, +5000/сек)',
-        dig3: 'Приложения для Обучения (+1200/клик, +8000/сек)',
-        dig4: 'Онлайн-Курсы (+1800/клик, +12000/сек)',
-        dig5: 'VR Среда Обучения (+2700/клик, +18000/сек)',
-        dig6: 'ИИ Репетитор (+4000/клик, +27000/сек)',
-        dig7: 'Голодек-Класс (+6000/клик, +40000/сек)'
-      },
-      ja: {
-        title: '教育クリッカー',
-        flavour: '遊びながら学び教える',
-        namePlaceholder: 'あなたの名前...',
-        clickBtn: '学ぼう！',
-        clickBtnTeacher: '教えよう！',
-        clickBtnStudent: '一生懸命勉強しよう！',
-        roleTitle: '役割を選ぶ',
-        chooseTeacher: '私は教師です',
-        chooseStudent: '私は生徒です',
-        roleText: '役割が選択されていません。',
-        roleTextTeacher: '教師 – 知識を共有する',
-        roleTextStudent: '生徒 – 知識を獲得する',
-        teacherLabel: '能力',
-        studentLabel: '知識',
-        rank: 'ランク',
-        rankUnknown: '初心者',
-        rankTeacher1: '研修教師',
-        rankTeacher2: '若手教師',
-        rankTeacher3: '経験豊富な教師',
-        rankTeacher4: '部門長',
-        rankTeacher5: '上級教師',
-        rankTeacher6: '校長',
-        rankTeacher7: '試験エキスパート',
-        rankTeacher8: '教育の伝説',
-        rankStudent1: '一年生',
-        rankStudent2: '勤勉な生徒',
-        rankStudent3: 'クラストップ',
-        rankStudent4: '模範生徒',
-        rankStudent5: '卒業生',
-        rankStudent6: '大学生',
-        rankStudent7: '学士',
-        rankStudent8: '博士',
-        basicsTitle: '基礎知識',
-        materialsTitle: '教材',
-        examsTitle: '試験',
-        projectsTitle: 'プロジェクト',
-        digitalTitle: 'デジタルツール',
-        buy: '購入',
-        achievement100: '{name}、素晴らしい進歩です！',
-        achievement500: '{name}、本当の学習の喜びを発見しています！',
-        achievement1000: '素晴らしい、{name}！正しい道を進んでいます！',
-        achievement5000: '{name}、あなたは真の学習の才能です！',
-        achievement10000: '優秀、{name}！あなたの努力が報われています！',
-        achievement25000: '{name}、あなたはすべての人の手本です！',
-        achievement50000: '素晴らしい、{name}！このレベルに達する人は少ないです！',
-        achievement100000: '{name}、完璧を達成しました！',
-        basic1: '読むことを学ぶ (+2/クリック)',
-        basic2: '書くことを練習 (+3/クリック)',
-        basic3: '算数を練習 (+5/クリック)',
-        basic4: '語彙を学ぶ (+8/クリック)',
-        basic5: '文法を理解 (+12/クリック)',
-        basic6: '公式を暗記 (+18/クリック)',
-        basic7: 'つながりを認識 (+25/クリック)',
-        mat1: 'ワークシート (+2/秒)',
-        mat2: '教科書 (+4/秒)',
-        mat3: '練習帳 (+7/秒)',
-        mat4: '学習カード (+11/秒)',
-        mat5: '百科事典 (+16/秒)',
-        mat6: '専門文献 (+23/秒)',
-        mat7: '図書館 (+32/秒)',
-        mat8: '完全コレクション (+45/秒)',
-        exam1: '短いテスト (+3/クリック, +15/秒)',
-        exam2: 'クラステスト (+5/クリック, +28/秒)',
-        exam3: '試験 (+8/クリック, +45/秒)',
-        exam4: '最終試験 (+12/クリック, +70/秒)',
-        exam5: '国家試験 (+18/クリック, +105/秒)',
-        exam6: 'マスター試験 (+25/クリック, +150/秒)',
-        proj1: 'レポート (+40/クリック, +200/秒)',
-        proj2: 'プレゼンテーション (+65/クリック, +350/秒)',
-        proj3: 'グループワーク (+100/クリック, +550/秒)',
-        proj4: '論文 (+150/クリック, +850/秒)',
-        proj5: '研究プロジェクト (+230/クリック, +1300/秒)',
-        proj6: '卒業論文 (+350/クリック, +2000/秒)',
-        dig1: '電卓 (+500/クリック, +3000/秒)',
-        dig2: 'コンピュータ (+800/クリック, +5000/秒)',
-        dig3: '学習アプリ (+1200/クリック, +8000/秒)',
-        dig4: 'オンラインコース (+1800/クリック, +12000/秒)',
-        dig5: 'VR学習環境 (+2700/クリック, +18000/秒)',
-        dig6: 'AIチューター (+4000/クリック, +27000/秒)',
-        dig7: 'ホロデッククラスルーム (+6000/クリック, +40000/秒)'
-      }
-    };
-
     let count = 0;
     let perClick = 1;
     let autoClicks = 0;
@@ -1207,176 +460,135 @@
     let hasExams = false;
     let playerName = '';
     let achievementsShown = [];
+    let prestigePoints = 0;
+    let totalResets = 0;
+
+    // Prestige multipliers
+    let clickMultiplier = 1;
+    let autoMultiplier = 1;
+    let startBonus = 0;
+    let discountLevel = 0;
+
+    // Prestige upgrade costs
+    let pClickCost = 1;
+    let pAutoCost = 1;
+    let pStartCost = 2;
+    let pDiscountCost = 3;
 
     const counter = document.getElementById('counter');
+    const prestigeCounter = document.getElementById('prestigeCounter');
     const btn = document.getElementById('clickBtn');
+    const resetBtn = document.getElementById('resetBtn');
     const achievementEl = document.getElementById('achievement');
     let lang = 'de';
 
-    const unlockThresholds = {
-      basic2: 50,
-      basic3: 150,
-      basic4: 300,
-      basic5: 600,
-      basic6: 1200,
-      basic7: 2000,
-      blockMaterials: 250,
-      mat2: 500,
-      mat3: 800,
-      mat4: 1200,
-      mat5: 2000,
-      mat6: 3500,
-      mat7: 5500,
-      mat8: 8500,
-      blockExams: 5000,
-      exam2: 7000,
-      exam3: 10000,
-      exam4: 15000,
-      exam5: 22000,
-      exam6: 32000,
-      blockProjects: 15000,
-      proj2: 20000,
-      proj3: 35000,
-      proj4: 55000,
-      proj5: 85000,
-      proj6: 130000,
-      blockDigital: 60000,
-      dig2: 90000,
-      dig3: 140000,
-      dig4: 220000,
-      dig5: 350000,
-      dig6: 550000,
-      dig7: 900000
+    // Owned counters for all upgrades
+    const owned = {
+      basic1:0, basic2:0, basic3:0, basic4:0, basic5:0, basic6:0, basic7:0, basic8:0, basic9:0, basic10:0,
+      mat1:0, mat2:0, mat3:0, mat4:0, mat5:0, mat6:0, mat7:0, mat8:0, mat9:0, mat10:0, mat11:0, mat12:0,
+      exam1:0, exam2:0, exam3:0, exam4:0, exam5:0, exam6:0, exam7:0, exam8:0, exam9:0, exam10:0,
+      proj1:0, proj2:0, proj3:0, proj4:0, proj5:0, proj6:0, proj7:0, proj8:0, proj9:0, proj10:0,
+      dig1:0, dig2:0, dig3:0, dig4:0, dig5:0, dig6:0, dig7:0, dig8:0, dig9:0, dig10:0, dig11:0, dig12:0
     };
 
     const basicUpgrades = [
-      {id:'basic1', cost:30, increment:2, costEl:'basic1Cost'},
-      {id:'basic2', cost:60, increment:3, costEl:'basic2Cost'},
-      {id:'basic3', cost:100, increment:5, costEl:'basic3Cost'},
-      {id:'basic4', cost:150, increment:8, costEl:'basic4Cost'},
-      {id:'basic5', cost:220, increment:12, costEl:'basic5Cost'},
-      {id:'basic6', cost:320, increment:18, costEl:'basic6Cost'},
-      {id:'basic7', cost:450, increment:25, costEl:'basic7Cost'}
+      {id:'basic1', baseCost:50, increment:1, costEl:'basic1Cost', cost:50, mult:1.15, prev:null},
+      {id:'basic2', baseCost:200, increment:2, costEl:'basic2Cost', cost:200, mult:1.15, prev:'basic1'},
+      {id:'basic3', baseCost:500, increment:3, costEl:'basic3Cost', cost:500, mult:1.15, prev:'basic2'},
+      {id:'basic4', baseCost:1000, increment:5, costEl:'basic4Cost', cost:1000, mult:1.15, prev:'basic3'},
+      {id:'basic5', baseCost:2000, increment:7, costEl:'basic5Cost', cost:2000, mult:1.15, prev:'basic4'},
+      {id:'basic6', baseCost:4000, increment:10, costEl:'basic6Cost', cost:4000, mult:1.15, prev:'basic5'},
+      {id:'basic7', baseCost:8000, increment:14, costEl:'basic7Cost', cost:8000, mult:1.15, prev:'basic6'},
+      {id:'basic8', baseCost:15000, increment:20, costEl:'basic8Cost', cost:15000, mult:1.15, prev:'basic7'},
+      {id:'basic9', baseCost:30000, increment:28, costEl:'basic9Cost', cost:30000, mult:1.15, prev:'basic8'},
+      {id:'basic10', baseCost:60000, increment:40, costEl:'basic10Cost', cost:60000, mult:1.15, prev:'basic9'}
     ];
 
     const materialUpgrades = [
-      {id:'mat1', cost:250, increment:2, costEl:'mat1Cost'},
-      {id:'mat2', cost:400, increment:4, costEl:'mat2Cost'},
-      {id:'mat3', cost:600, increment:7, costEl:'mat3Cost'},
-      {id:'mat4', cost:900, increment:11, costEl:'mat4Cost'},
-      {id:'mat5', cost:1400, increment:16, costEl:'mat5Cost'},
-      {id:'mat6', cost:2100, increment:23, costEl:'mat6Cost'},
-      {id:'mat7', cost:3200, increment:32, costEl:'mat7Cost'},
-      {id:'mat8', cost:4800, increment:45, costEl:'mat8Cost'}
+      {id:'mat1', baseCost:500, increment:1, costEl:'mat1Cost', cost:500, mult:1.2, prev:null},
+      {id:'mat2', baseCost:1000, increment:2, costEl:'mat2Cost', cost:1000, mult:1.2, prev:'mat1'},
+      {id:'mat3', baseCost:2500, increment:4, costEl:'mat3Cost', cost:2500, mult:1.2, prev:'mat2'},
+      {id:'mat4', baseCost:5000, increment:7, costEl:'mat4Cost', cost:5000, mult:1.2, prev:'mat3'},
+      {id:'mat5', baseCost:10000, increment:11, costEl:'mat5Cost', cost:10000, mult:1.2, prev:'mat4'},
+      {id:'mat6', baseCost:20000, increment:17, costEl:'mat6Cost', cost:20000, mult:1.2, prev:'mat5'},
+      {id:'mat7', baseCost:40000, increment:25, costEl:'mat7Cost', cost:40000, mult:1.2, prev:'mat6'},
+      {id:'mat8', baseCost:80000, increment:36, costEl:'mat8Cost', cost:80000, mult:1.2, prev:'mat7'},
+      {id:'mat9', baseCost:150000, increment:50, costEl:'mat9Cost', cost:150000, mult:1.2, prev:'mat8'},
+      {id:'mat10', baseCost:300000, increment:70, costEl:'mat10Cost', cost:300000, mult:1.2, prev:'mat9'},
+      {id:'mat11', baseCost:600000, increment:100, costEl:'mat11Cost', cost:600000, mult:1.2, prev:'mat10'},
+      {id:'mat12', baseCost:1200000, increment:140, costEl:'mat12Cost', cost:1200000, mult:1.2, prev:'mat11'}
     ];
 
     const examUpgrades = [
-      {id:'exam1', cost:5000, incrementClick:3, incrementAuto:15, costEl:'exam1Cost'},
-      {id:'exam2', cost:8000, incrementClick:5, incrementAuto:28, costEl:'exam2Cost'},
-      {id:'exam3', cost:12000, incrementClick:8, incrementAuto:45, costEl:'exam3Cost'},
-      {id:'exam4', cost:18000, incrementClick:12, incrementAuto:70, costEl:'exam4Cost'},
-      {id:'exam5', cost:27000, incrementClick:18, incrementAuto:105, costEl:'exam5Cost'},
-      {id:'exam6', cost:40000, incrementClick:25, incrementAuto:150, costEl:'exam6Cost'}
+      {id:'exam1', baseCost:15000, incrementClick:2, incrementAuto:10, costEl:'exam1Cost', cost:15000, mult:1.25, prev:null},
+      {id:'exam2', baseCost:30000, incrementClick:4, incrementAuto:20, costEl:'exam2Cost', cost:30000, mult:1.25, prev:'exam1'},
+      {id:'exam3', baseCost:60000, incrementClick:7, incrementAuto:35, costEl:'exam3Cost', cost:60000, mult:1.25, prev:'exam2'},
+      {id:'exam4', baseCost:120000, incrementClick:11, incrementAuto:55, costEl:'exam4Cost', cost:120000, mult:1.25, prev:'exam3'},
+      {id:'exam5', baseCost:250000, incrementClick:17, incrementAuto:85, costEl:'exam5Cost', cost:250000, mult:1.25, prev:'exam4'},
+      {id:'exam6', baseCost:500000, incrementClick:25, incrementAuto:125, costEl:'exam6Cost', cost:500000, mult:1.25, prev:'exam5'},
+      {id:'exam7', baseCost:1000000, incrementClick:36, incrementAuto:180, costEl:'exam7Cost', cost:1000000, mult:1.25, prev:'exam6'},
+      {id:'exam8', baseCost:2000000, incrementClick:50, incrementAuto:250, costEl:'exam8Cost', cost:2000000, mult:1.25, prev:'exam7'},
+      {id:'exam9', baseCost:4000000, incrementClick:70, incrementAuto:350, costEl:'exam9Cost', cost:4000000, mult:1.25, prev:'exam8'},
+      {id:'exam10', baseCost:8000000, incrementClick:100, incrementAuto:500, costEl:'exam10Cost', cost:8000000, mult:1.25, prev:'exam9'}
     ];
 
     const projectUpgrades = [
-      {id:'proj1', cost:15000, incrementClick:40, incrementAuto:200, costEl:'proj1Cost'},
-      {id:'proj2', cost:25000, incrementClick:65, incrementAuto:350, costEl:'proj2Cost'},
-      {id:'proj3', cost:40000, incrementClick:100, incrementAuto:550, costEl:'proj3Cost'},
-      {id:'proj4', cost:65000, incrementClick:150, incrementAuto:850, costEl:'proj4Cost'},
-      {id:'proj5', cost:100000, incrementClick:230, incrementAuto:1300, costEl:'proj5Cost'},
-      {id:'proj6', cost:150000, incrementClick:350, incrementAuto:2000, costEl:'proj6Cost'}
+      {id:'proj1', baseCost:100000, incrementClick:30, incrementAuto:150, costEl:'proj1Cost', cost:100000, mult:1.3, prev:null},
+      {id:'proj2', baseCost:250000, incrementClick:50, incrementAuto:250, costEl:'proj2Cost', cost:250000, mult:1.3, prev:'proj1'},
+      {id:'proj3', baseCost:600000, incrementClick:80, incrementAuto:400, costEl:'proj3Cost', cost:600000, mult:1.3, prev:'proj2'},
+      {id:'proj4', baseCost:1500000, incrementClick:120, incrementAuto:600, costEl:'proj4Cost', cost:1500000, mult:1.3, prev:'proj3'},
+      {id:'proj5', baseCost:3500000, incrementClick:180, incrementAuto:900, costEl:'proj5Cost', cost:3500000, mult:1.3, prev:'proj4'},
+      {id:'proj6', baseCost:7000000, incrementClick:260, incrementAuto:1300, costEl:'proj6Cost', cost:7000000, mult:1.3, prev:'proj5'},
+      {id:'proj7', baseCost:15000000, incrementClick:370, incrementAuto:1850, costEl:'proj7Cost', cost:15000000, mult:1.3, prev:'proj6'},
+      {id:'proj8', baseCost:30000000, incrementClick:520, incrementAuto:2600, costEl:'proj8Cost', cost:30000000, mult:1.3, prev:'proj7'},
+      {id:'proj9', baseCost:60000000, incrementClick:720, incrementAuto:3600, costEl:'proj9Cost', cost:60000000, mult:1.3, prev:'proj8'},
+      {id:'proj10', baseCost:120000000, incrementClick:1000, incrementAuto:5000, costEl:'proj10Cost', cost:120000000, mult:1.3, prev:'proj9'}
     ];
 
     const digitalUpgrades = [
-      {id:'dig1', cost:60000, incrementClick:500, incrementAuto:3000, costEl:'dig1Cost'},
-      {id:'dig2', cost:100000, incrementClick:800, incrementAuto:5000, costEl:'dig2Cost'},
-      {id:'dig3', cost:160000, incrementClick:1200, incrementAuto:8000, costEl:'dig3Cost'},
-      {id:'dig4', cost:250000, incrementClick:1800, incrementAuto:12000, costEl:'dig4Cost'},
-      {id:'dig5', cost:400000, incrementClick:2700, incrementAuto:18000, costEl:'dig5Cost'},
-      {id:'dig6', cost:650000, incrementClick:4000, incrementAuto:27000, costEl:'dig6Cost'},
-      {id:'dig7', cost:1000000, incrementClick:6000, incrementAuto:40000, costEl:'dig7Cost'}
+      {id:'dig1', baseCost:500000, incrementClick:400, incrementAuto:2000, costEl:'dig1Cost', cost:500000, mult:1.35, prev:null},
+      {id:'dig2', baseCost:1500000, incrementClick:700, incrementAuto:3500, costEl:'dig2Cost', cost:1500000, mult:1.35, prev:'dig1'},
+      {id:'dig3', baseCost:4000000, incrementClick:1100, incrementAuto:5500, costEl:'dig3Cost', cost:4000000, mult:1.35, prev:'dig2'},
+      {id:'dig4', baseCost:10000000, incrementClick:1700, incrementAuto:8500, costEl:'dig4Cost', cost:10000000, mult:1.35, prev:'dig3'},
+      {id:'dig5', baseCost:25000000, incrementClick:2500, incrementAuto:12500, costEl:'dig5Cost', cost:25000000, mult:1.35, prev:'dig4'},
+      {id:'dig6', baseCost:60000000, incrementClick:3700, incrementAuto:18500, costEl:'dig6Cost', cost:60000000, mult:1.35, prev:'dig5'},
+      {id:'dig7', baseCost:150000000, incrementClick:5300, incrementAuto:26500, costEl:'dig7Cost', cost:150000000, mult:1.35, prev:'dig6'},
+      {id:'dig8', baseCost:350000000, incrementClick:7500, incrementAuto:37500, costEl:'dig8Cost', cost:350000000, mult:1.35, prev:'dig7'},
+      {id:'dig9', baseCost:800000000, incrementClick:10500, incrementAuto:52500, costEl:'dig9Cost', cost:800000000, mult:1.35, prev:'dig8'},
+      {id:'dig10', baseCost:1800000000, incrementClick:14500, incrementAuto:72500, costEl:'dig10Cost', cost:1800000000, mult:1.35, prev:'dig9'},
+      {id:'dig11', baseCost:4000000000, incrementClick:20000, incrementAuto:100000, costEl:'dig11Cost', cost:4000000000, mult:1.35, prev:'dig10'},
+      {id:'dig12', baseCost:9000000000, incrementClick:28000, incrementAuto:140000, costEl:'dig12Cost', cost:9000000000, mult:1.35, prev:'dig11'}
     ];
+
+    const unlockThresholds = {
+      blockMaterials: 500,
+      blockExams: 15000,
+      blockProjects: 100000,
+      blockDigital: 500000
+    };
 
     document.getElementById('nameInput').addEventListener('input', (e) => {
       playerName = e.target.value;
     });
 
-    function updateLanguage() {
-      const t = translations[lang];
-      document.getElementById('title').textContent = t.title;
-      document.getElementById('flavour').textContent = t.flavour;
-      document.getElementById('nameInput').placeholder = t.namePlaceholder;
-      document.getElementById('roleTitle').textContent = t.roleTitle;
-      document.getElementById('chooseTeacher').textContent = t.chooseTeacher;
-      document.getElementById('chooseStudent').textContent = t.chooseStudent;
-      document.getElementById('teacherLabel').textContent = t.teacherLabel;
-      document.getElementById('studentLabel').textContent = t.studentLabel;
-      document.getElementById('basicsTitle').textContent = t.basicsTitle;
-      document.getElementById('materialsTitle').textContent = t.materialsTitle;
-      document.getElementById('examsTitle').textContent = t.examsTitle;
-      document.getElementById('projectsTitle').textContent = t.projectsTitle;
-      document.getElementById('digitalTitle').textContent = t.digitalTitle;
-
-      if (role === 'teacher') {
-        btn.textContent = t.clickBtnTeacher;
-        document.getElementById('roleText').textContent = t.roleTextTeacher;
-      } else if (role === 'student') {
-        btn.textContent = t.clickBtnStudent;
-        document.getElementById('roleText').textContent = t.roleTextStudent;
-      } else {
-        btn.textContent = t.clickBtn;
-        document.getElementById('roleText').textContent = t.roleText;
-      }
-
-      basicUpgrades.forEach((u, i) => {
-        const key = 'basic' + (i + 1);
-        document.getElementById(u.id + 'Text').innerHTML = `${t[key]} – <span id="${u.costEl}">${u.cost}</span>`;
-      });
-
-      materialUpgrades.forEach((u, i) => {
-        const key = 'mat' + (i + 1);
-        document.getElementById(u.id + 'Text').innerHTML = `${t[key]} – <span id="${u.costEl}">${u.cost}</span>`;
-      });
-
-      examUpgrades.forEach((u, i) => {
-        const key = 'exam' + (i + 1);
-        document.getElementById(u.id + 'Text').innerHTML = `${t[key]} – <span id="${u.costEl}">${u.cost}</span>`;
-      });
-
-      projectUpgrades.forEach((u, i) => {
-        const key = 'proj' + (i + 1);
-        document.getElementById(u.id + 'Text').innerHTML = `${t[key]} – <span id="${u.costEl}">${u.cost}</span>`;
-      });
-
-      digitalUpgrades.forEach((u, i) => {
-        const key = 'dig' + (i + 1);
-        document.getElementById(u.id + 'Text').innerHTML = `${t[key]} – <span id="${u.costEl}">${u.cost}</span>`;
-      });
-
-      updateButtonLabels();
-      updateRank();
-    }
-
-    function updateButtonLabels() {
-      const t = translations[lang];
-      document.querySelectorAll('.upgrader button').forEach(btn => {
-        btn.textContent = t.buy;
-      });
-    }
-
-    document.getElementById('langSelect').onchange = (e) => {
-      lang = e.target.value;
-      updateLanguage();
-    };
-
     function update() {
-      counter.textContent = Math.floor(count);
+      counter.textContent = formatNumber(Math.floor(count));
+      prestigeCounter.textContent = 'Prestige-Punkte: ' + prestigePoints;
       updateButtonStates();
       checkUnlocks();
+      updateResetButton();
+    }
+
+    function formatNumber(num) {
+      if (num >= 1e12) return (num/1e12).toFixed(2) + 'T';
+      if (num >= 1e9) return (num/1e9).toFixed(2) + 'B';
+      if (num >= 1e6) return (num/1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num/1e3).toFixed(2) + 'K';
+      return num.toString();
     }
 
     function checkUnlocks() {
+      // Unlock blocks
       for (const [id, threshold] of Object.entries(unlockThresholds)) {
         if (count >= threshold) {
           const el = document.getElementById(id);
@@ -1385,38 +597,57 @@
           }
         }
       }
+
+      // Unlock individual upgrades based on previous upgrade having 10 owned
+      checkUpgradeUnlock(basicUpgrades);
+      checkUpgradeUnlock(materialUpgrades);
+      checkUpgradeUnlock(examUpgrades);
+      checkUpgradeUnlock(projectUpgrades);
+      checkUpgradeUnlock(digitalUpgrades);
+    }
+
+    function checkUpgradeUnlock(upgrades) {
+      upgrades.forEach(u => {
+        if (u.prev === null) return; // First upgrade always visible
+
+        const prevUpgrade = upgrades.find(up => up.id === u.prev);
+        if (prevUpgrade && owned[prevUpgrade.id] >= 10) {
+          const el = document.getElementById(u.id);
+          if (el && el.classList.contains('hidden')) {
+            el.classList.remove('hidden');
+          }
+        }
+      });
     }
 
     function updateButtonStates() {
-      basicUpgrades.forEach(u => {
+      updateUpgradeButtons(basicUpgrades);
+      updateUpgradeButtons(materialUpgrades);
+      updateUpgradeButtons(examUpgrades);
+      updateUpgradeButtons(projectUpgrades);
+      updateUpgradeButtons(digitalUpgrades);
+    }
+
+    function updateUpgradeButtons(upgrades) {
+      upgrades.forEach(u => {
         const upgraderEl = document.getElementById(u.id);
+        if (!upgraderEl) return;
         const btn = upgraderEl.querySelector('button');
-        btn.disabled = count < u.cost;
-      });
-      materialUpgrades.forEach(u => {
-        const upgraderEl = document.getElementById(u.id);
-        const btn = upgraderEl.querySelector('button');
-        btn.disabled = count < u.cost;
-      });
-      examUpgrades.forEach(u => {
-        const upgraderEl = document.getElementById(u.id);
-        const btn = upgraderEl.querySelector('button');
-        btn.disabled = count < u.cost;
-      });
-      projectUpgrades.forEach(u => {
-        const upgraderEl = document.getElementById(u.id);
-        const btn = upgraderEl.querySelector('button');
-        btn.disabled = count < u.cost;
-      });
-      digitalUpgrades.forEach(u => {
-        const upgraderEl = document.getElementById(u.id);
-        const btn = upgraderEl.querySelector('button');
-        btn.disabled = count < u.cost;
+        const discountFactor = Math.pow(0.95, discountLevel);
+        const actualCost = Math.floor(u.cost * discountFactor);
+        btn.disabled = count < actualCost;
       });
     }
 
+    function updateResetButton() {
+      const resetThreshold = 10000000;
+      resetBtn.disabled = count < resetThreshold;
+      const prestigeGain = Math.floor(count / 1000000);
+      resetBtn.textContent = `Reset (${formatNumber(resetThreshold)}) → +${prestigeGain} PP`;
+    }
+
     function checkAchievements() {
-      const milestones = [100, 500, 1000, 5000, 10000, 25000, 50000, 100000];
+      const milestones = [100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 5000000];
       milestones.forEach(m => {
         if (count >= m && !achievementsShown.includes(m)) {
           showAchievement(m);
@@ -1426,12 +657,21 @@
     }
 
     function showAchievement(milestone) {
-      const t = translations[lang];
       const name = playerName || 'Spieler';
-      const key = `achievement${milestone}`;
-      const message = t[key].replace('{name}', name);
+      const messages = {
+        100: `${name}, du machst tolle Fortschritte!`,
+        500: `${name}, du entwickelst echte Lernfreude!`,
+        1000: `Beeindruckend, ${name}!`,
+        5000: `${name}, du bist ein Lerntalent!`,
+        10000: `Hervorragend, ${name}!`,
+        50000: `${name}, du bist ein Vorbild!`,
+        100000: `Fantastisch, ${name}!`,
+        500000: `${name}, du bist außergewöhnlich!`,
+        1000000: `${name}, eine Million! Unglaublich!`,
+        5000000: `${name}, 5 Millionen! Du bist eine Legende!`
+      };
 
-      achievementEl.textContent = message;
+      achievementEl.textContent = messages[milestone];
       achievementEl.style.display = 'block';
 
       setTimeout(() => {
@@ -1441,33 +681,35 @@
 
     document.getElementById('chooseTeacher').onclick = () => {
       role = 'teacher';
-      updateLanguage();
+      btn.textContent = 'Unterrichte!';
+      document.getElementById('roleText').textContent = 'Lehrer/in – Wissen weitergeben';
     };
 
     document.getElementById('chooseStudent').onclick = () => {
       role = 'student';
-      updateLanguage();
+      btn.textContent = 'Lerne fleißig!';
+      document.getElementById('roleText').textContent = 'Schüler/in – Wissenserwerb';
     };
 
     btn.onclick = () => {
-      count += perClick;
+      count += perClick * clickMultiplier;
 
       if(role === 'teacher') {
         if (hasExams) {
-          teacher += perClick / 5;
+          teacher += (perClick * clickMultiplier) / 5;
         } else if (teacher < 1000) {
-          teacher += perClick / 10;
+          teacher += (perClick * clickMultiplier) / 10;
         } else {
-          teacher += perClick / 20;
+          teacher += (perClick * clickMultiplier) / 20;
         }
       }
       if(role === 'student') {
         if (hasExams) {
-          student += perClick / 5;
+          student += (perClick * clickMultiplier) / 5;
         } else if (student < 1000) {
-          student += perClick / 10;
+          student += (perClick * clickMultiplier) / 10;
         } else {
-          student += perClick / 20;
+          student += (perClick * clickMultiplier) / 20;
         }
       }
 
@@ -1478,95 +720,180 @@
       checkAchievements();
     };
 
-    basicUpgrades.forEach(u => {
-      const upgraderEl = document.getElementById(u.id);
-      const btn = upgraderEl.querySelector('button');
-      btn.onclick = () => {
-        if (count >= u.cost) {
-          count -= u.cost;
-          perClick += u.increment;
-          u.cost = Math.floor(u.cost * 1.3);
-          document.getElementById(u.costEl).textContent = u.cost;
-          update();
-        }
-      };
-    });
+    resetBtn.onclick = () => {
+      if (count >= 10000000) {
+        const prestigeGain = Math.floor(count / 1000000);
+        if (confirm(`Reset bestätigen?\n\nDu erhältst ${prestigeGain} Prestige-Punkte und beginnst von vorne, behältst aber alle Prestige-Upgrades!`)) {
+          prestigePoints += prestigeGain;
+          totalResets++;
 
-    materialUpgrades.forEach(u => {
-      const upgraderEl = document.getElementById(u.id);
-      const btn = upgraderEl.querySelector('button');
-      btn.onclick = () => {
-        if (count >= u.cost) {
-          count -= u.cost;
-          autoClicks += u.increment;
-          u.cost = Math.floor(u.cost * 1.3);
-          document.getElementById(u.costEl).textContent = u.cost;
-          update();
-        }
-      };
-    });
+          // Reset game state
+          count = startBonus;
+          perClick = 1;
+          autoClicks = 0;
+          teacher = 0;
+          student = 0;
+          achievementsShown = [];
 
-    examUpgrades.forEach(u => {
-      const upgraderEl = document.getElementById(u.id);
-      const btn = upgraderEl.querySelector('button');
-      btn.onclick = () => {
-        if (count >= u.cost) {
-          count -= u.cost;
-          perClick += u.incrementClick;
-          autoClicks += u.incrementAuto;
-          hasExams = true;
-          u.cost = Math.floor(u.cost * 1.4);
-          document.getElementById(u.costEl).textContent = u.cost;
-          update();
-        }
-      };
-    });
+          // Reset all owned counters
+          for (let key in owned) {
+            owned[key] = 0;
+          }
 
-    projectUpgrades.forEach(u => {
-      const upgraderEl = document.getElementById(u.id);
-      const btn = upgraderEl.querySelector('button');
-      btn.onclick = () => {
-        if (count >= u.cost) {
-          count -= u.cost;
-          perClick += u.incrementClick;
-          autoClicks += u.incrementAuto;
-          u.cost = Math.floor(u.cost * 1.5);
-          document.getElementById(u.costEl).textContent = u.cost;
-          update();
-        }
-      };
-    });
+          // Reset all upgrade costs
+          basicUpgrades.forEach(u => {
+            u.cost = u.baseCost;
+            document.getElementById(u.costEl).textContent = u.baseCost;
+            document.getElementById(u.id + 'Level').textContent = '[0]';
+            if (u.prev !== null) {
+              document.getElementById(u.id).classList.add('hidden');
+            }
+          });
 
-    digitalUpgrades.forEach(u => {
-      const upgraderEl = document.getElementById(u.id);
+          materialUpgrades.forEach(u => {
+            u.cost = u.baseCost;
+            document.getElementById(u.costEl).textContent = u.baseCost;
+            document.getElementById(u.id + 'Level').textContent = '[0]';
+            if (u.prev !== null) {
+              document.getElementById(u.id).classList.add('hidden');
+            }
+          });
+
+          examUpgrades.forEach(u => {
+            u.cost = u.baseCost;
+            document.getElementById(u.costEl).textContent = u.baseCost;
+            document.getElementById(u.id + 'Level').textContent = '[0]';
+            if (u.prev !== null) {
+              document.getElementById(u.id).classList.add('hidden');
+            }
+          });
+
+          projectUpgrades.forEach(u => {
+            u.cost = u.baseCost;
+            document.getElementById(u.costEl).textContent = u.baseCost;
+            document.getElementById(u.id + 'Level').textContent = '[0]';
+            if (u.prev !== null) {
+              document.getElementById(u.id).classList.add('hidden');
+            }
+          });
+
+          digitalUpgrades.forEach(u => {
+            u.cost = u.baseCost;
+            document.getElementById(u.costEl).textContent = u.baseCost;
+            document.getElementById(u.id + 'Level').textContent = '[0]';
+            if (u.prev !== null) {
+              document.getElementById(u.id).classList.add('hidden');
+            }
+          });
+
+          // Hide blocks again
+          document.getElementById('blockMaterials').classList.add('hidden');
+          document.getElementById('blockExams').classList.add('hidden');
+          document.getElementById('blockProjects').classList.add('hidden');
+          document.getElementById('blockDigital').classList.add('hidden');
+
+          // Show prestige shop after first reset
+          if (totalResets >= 1) {
+            document.getElementById('prestigeShop').classList.remove('hidden');
+          }
+
+          update();
+          updateRank();
+        }
+      }
+    };
+
+    // Prestige shop buttons
+    document.getElementById('pClickBtn').onclick = () => {
+      if (prestigePoints >= pClickCost) {
+        prestigePoints -= pClickCost;
+        clickMultiplier *= 2;
+        pClickCost = Math.ceil(pClickCost * 2.5);
+        document.getElementById('pClickCost').textContent = pClickCost;
+        update();
+      }
+    };
+
+    document.getElementById('pAutoBtn').onclick = () => {
+      if (prestigePoints >= pAutoCost) {
+        prestigePoints -= pAutoCost;
+        autoMultiplier *= 2;
+        pAutoCost = Math.ceil(pAutoCost * 2.5);
+        document.getElementById('pAutoCost').textContent = pAutoCost;
+        update();
+      }
+    };
+
+    document.getElementById('pStartBtn').onclick = () => {
+      if (prestigePoints >= pStartCost) {
+        prestigePoints -= pStartCost;
+        startBonus += 1000;
+        pStartCost = Math.ceil(pStartCost * 2.5);
+        document.getElementById('pStartCost').textContent = pStartCost;
+        update();
+      }
+    };
+
+    document.getElementById('pDiscountBtn').onclick = () => {
+      if (prestigePoints >= pDiscountCost) {
+        prestigePoints -= pDiscountCost;
+        discountLevel++;
+        pDiscountCost = Math.ceil(pDiscountCost * 2.5);
+        document.getElementById('pDiscountCost').textContent = pDiscountCost;
+        update();
+      }
+    };
+
+    function setupUpgrade(upgrade, isClick, isAuto) {
+      const upgraderEl = document.getElementById(upgrade.id);
       const btn = upgraderEl.querySelector('button');
       btn.onclick = () => {
-        if (count >= u.cost) {
-          count -= u.cost;
-          perClick += u.incrementClick;
-          autoClicks += u.incrementAuto;
-          u.cost = Math.floor(u.cost * 1.6);
-          document.getElementById(u.costEl).textContent = u.cost;
+        const discountFactor = Math.pow(0.95, discountLevel);
+        const actualCost = Math.floor(upgrade.cost * discountFactor);
+
+        if (count >= actualCost) {
+          count -= actualCost;
+          owned[upgrade.id]++;
+
+          if (isClick) {
+            perClick += upgrade.incrementClick || upgrade.increment;
+          }
+          if (isAuto) {
+            autoClicks += upgrade.incrementAuto || upgrade.increment;
+          }
+          if (upgrade.incrementClick && upgrade.incrementAuto) {
+            hasExams = true;
+          }
+
+          upgrade.cost = Math.floor(upgrade.cost * upgrade.mult);
+          document.getElementById(upgrade.costEl).textContent = formatNumber(upgrade.cost);
+          document.getElementById(upgrade.id + 'Level').textContent = `[${owned[upgrade.id]}]`;
           update();
         }
       };
-    });
+    }
+
+    basicUpgrades.forEach(u => setupUpgrade(u, true, false));
+    materialUpgrades.forEach(u => setupUpgrade(u, false, true));
+    examUpgrades.forEach(u => setupUpgrade(u, true, true));
+    projectUpgrades.forEach(u => setupUpgrade(u, true, true));
+    digitalUpgrades.forEach(u => setupUpgrade(u, true, true));
 
     setInterval(() => {
-      count += autoClicks;
+      count += autoClicks * autoMultiplier;
 
       if(role === 'teacher') {
         if (hasExams) {
-          teacher += autoClicks / 50;
+          teacher += (autoClicks * autoMultiplier) / 50;
         } else if (teacher < 1000) {
-          teacher += autoClicks / 100;
+          teacher += (autoClicks * autoMultiplier) / 100;
         }
       }
       if(role === 'student') {
         if (hasExams) {
-          student += autoClicks / 50;
+          student += (autoClicks * autoMultiplier) / 50;
         } else if (student < 1000) {
-          student += autoClicks / 100;
+          student += (autoClicks * autoMultiplier) / 100;
         }
       }
 
@@ -1578,27 +905,53 @@
     }, 1000);
 
     function updateRank() {
-      const t = translations[lang];
-      let r = t.rankUnknown;
+      let r = 'Anfänger';
       let v = role === 'teacher' ? teacher : student;
-      const prefix = role === 'teacher' ? 'rankTeacher' : (role === 'student' ? 'rankStudent' : '');
+      const prefix = role === 'teacher' ? 'Lehrer' : (role === 'student' ? 'Schüler' : '');
 
-      if (prefix) {
-        if (v > 50000) r = t[prefix + '8'];
-        else if (v > 20000) r = t[prefix + '7'];
-        else if (v > 8000) r = t[prefix + '6'];
-        else if (v > 3000) r = t[prefix + '5'];
-        else if (v > 1200) r = t[prefix + '4'];
-        else if (v > 500) r = t[prefix + '3'];
-        else if (v > 150) r = t[prefix + '2'];
-        else if (v > 30) r = t[prefix + '1'];
+      if (prefix === 'Lehrer') {
+        if (v > 500000) r = 'Nobelpreisträger';
+        else if (v > 200000) r = 'Akademieleiter';
+        else if (v > 100000) r = 'Dekan';
+        else if (v > 50000) r = 'Professor';
+        else if (v > 25000) r = 'Dozent';
+        else if (v > 12000) r = 'Privatdozent';
+        else if (v > 6000) r = 'Oberlehrer';
+        else if (v > 3000) r = 'Studiendirektor';
+        else if (v > 1500) r = 'Fachleiter';
+        else if (v > 700) r = 'Erfahrener Lehrer';
+        else if (v > 300) r = 'Junglehrer';
+        else if (v > 100) r = 'Referendar';
+        else if (v > 30) r = 'Praktikant';
+      } else if (prefix === 'Schüler') {
+        if (v > 500000) r = 'Universalgenie';
+        else if (v > 200000) r = 'Philosoph';
+        else if (v > 100000) r = 'Koryphäe';
+        else if (v > 50000) r = 'Gelehrter';
+        else if (v > 25000) r = 'Doktor';
+        else if (v > 12000) r = 'Magister';
+        else if (v > 6000) r = 'Bachelor';
+        else if (v > 3000) r = 'Student';
+        else if (v > 1500) r = 'Abiturient';
+        else if (v > 700) r = 'Musterschüler';
+        else if (v > 300) r = 'Klassenbester';
+        else if (v > 100) r = 'Fleißiger Schüler';
+        else if (v > 30) r = 'Erstklässler';
       }
 
-      document.getElementById('rank').textContent = t.rank + ': ' + r;
+      document.getElementById('rank').textContent = 'Rang: ' + r;
     }
 
-    updateLanguage();
+    // Update prestige shop buttons
+    setInterval(() => {
+      document.getElementById('pClickBtn').disabled = prestigePoints < pClickCost;
+      document.getElementById('pAutoBtn').disabled = prestigePoints < pAutoCost;
+      document.getElementById('pStartBtn').disabled = prestigePoints < pStartCost;
+      document.getElementById('pDiscountBtn').disabled = prestigePoints < pDiscountCost;
+    }, 100);
+
     update();
+    updateRank();
   </script>
 </body>
 </html>
